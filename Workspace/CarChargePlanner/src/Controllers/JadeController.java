@@ -22,8 +22,8 @@ public class JadeController {
 	}
 	
 	// Methods
-	public void createCarAgent() {
-		_carContainer.createNewAgent(arg0, arg1, arg2)
+	public void createCarAgent() { // todo make this return interface of new agent
+		
 	}
 	
 	// Helpers

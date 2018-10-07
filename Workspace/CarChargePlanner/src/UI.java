@@ -11,11 +11,8 @@ import javax.swing.JButton;
 import java.awt.BorderLayout;
 
 public class UI {
-	
-	private int count = 0;
 	private JFrame frame;
-	
-	
+	private JadeController _jadeController;
 	
 	/**
 	 * Launch the application.
@@ -44,6 +41,7 @@ public class UI {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		_jadeController = new JadeController();
 		frame = new JFrame();
 		frame.setBounds(100, 100, 600, 450);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,10 +52,7 @@ public class UI {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				count++;
-				btnAddButton.setText(String.valueOf(count));
-				new JadeController();
-				
+				_jadeController.createCarAgent();
 			}
 		});
 		
