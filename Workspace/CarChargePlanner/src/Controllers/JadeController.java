@@ -23,7 +23,7 @@ public class JadeController {
 	
 	// Methods
 	public void createCarAgent() {
-		
+		_carContainer.createNewAgent(arg0, arg1, arg2)
 	}
 	
 	// Helpers
