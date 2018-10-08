@@ -3,6 +3,8 @@ package Controllers;
 import jade.core.Runtime;
 import Agents.CarAgent;
 import Agents.CarAgentInterface;
+import Agents.MsaAgent;
+import Agents.MsaAgentInterface;
 import Agents.TestAgentInterface;
 import Agents.TesterAgent;
 import jade.core.Profile;
@@ -33,6 +35,14 @@ public class JadeController {
 		
 		agentController.start();
 		return agentController.getO2AInterface(CarAgentInterface.class);
+	}
+	
+	public MsaAgentInterface createMsaAgent() throws StaleProxyException{
+		AgentController agentController = _mainContainer
+				.createNewAgent("msa_agent", MsaAgent.class.getName(),new Object[0]);
+		
+		agentController.start();
+		return agentController.getO2AInterface(MsaAgentInterface.class);		
 	}
 	
 	// Helpers

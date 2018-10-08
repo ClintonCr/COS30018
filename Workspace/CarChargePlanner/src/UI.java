@@ -48,6 +48,13 @@ public class UI {
 	private void initialize() {
 		_jadeController = new JadeController();
 		_carAgents = new ArrayList<>();
+		try {
+			_jadeController.createMsaAgent();
+		} catch (StaleProxyException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+				
 		frame = new JFrame();
 		frame.setBounds(100, 100, 600, 450);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,7 +67,11 @@ public class UI {
 			public void actionPerformed(ActionEvent e) {
 				//testerShit();
 				try {
-					_carAgents.add(_jadeController.createCarAgent());//register this interface in a list...
+					
+					_carAgents.add(_jadeController.createCarAgent());
+					
+					
+				//register this interface in a list...
 				} catch (StaleProxyException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
