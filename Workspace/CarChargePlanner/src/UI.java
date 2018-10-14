@@ -8,6 +8,7 @@ import java.util.List;
 import javax.swing.JFrame;
 
 import Agents.CarAgentInterface;
+import Agents.MsaAgentInterface;
 import Controllers.JadeController;
 import jade.wrapper.StaleProxyException;
 
@@ -17,6 +18,7 @@ import java.awt.BorderLayout;
 public class UI {
 	private JFrame frame;
 	private JadeController _jadeController;
+	private MsaAgentInterface _msaAgent;
 	private List<CarAgentInterface> _carAgents;
 	
 	/**
@@ -39,6 +41,14 @@ public class UI {
 	 * Create the application.
 	 */
 	public UI() {
+		// Initilise fields
+		frame = new JFrame();
+		_jadeController = new JadeController();
+		_carAgents = new ArrayList<>();
+		
+		// Create MSA Agent
+		createAgent(false); // createCarAgent = false
+		
 		initialize();
 	}
 
@@ -46,16 +56,6 @@ public class UI {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		_jadeController = new JadeController();
-		_carAgents = new ArrayList<>();
-		try {
-			_jadeController.createMsaAgent();
-		} catch (StaleProxyException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-				
-		frame = new JFrame();
 		frame.setBounds(100, 100, 600, 450);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -65,44 +65,24 @@ public class UI {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//testerShit();
-				try {
-					
-					_carAgents.add(_jadeController.createCarAgent());
-					
-					
-				//register this interface in a list...
-				} catch (StaleProxyException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} 
+				createAgent(true); // createCarAgent = true
 			}
 		});
-		
-		
 	}
 	
-	private void testerShit() {
-		/*
+	private void createAgent(boolean createCarAgent) {
 		try {
-			//TestAgentInterface asd =_jadeController.createCarAgent();
-			try {
-				System.out.println("FIRST TESTER" + asd.getCount());
-				Thread.sleep(1000);
-				System.out.println(asd.getCount());
-				Thread.sleep(1000);
-				System.out.println(asd.getCount());
-				Thread.sleep(1000);
-				System.out.println(asd.getCount());
-				Thread.sleep(1000);
-				System.out.println(asd.getCount());
+			if (createCarAgent) {
+				_carAgents.add(_jadeController.createCarAgent());
 			}
-			catch(Exception ex) {
-				
+			else {
+				// This will through an error if the MSA already exists
+				_msaAgent = _jadeController.createMsaAgent();
 			}
-		} catch (StaleProxyException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}*/
+		}
+		catch (Exception e) {
+			// TODO - log this correctly?
+			e.printStackTrace();
+		}
 	}
 }
