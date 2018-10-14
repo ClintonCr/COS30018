@@ -5,8 +5,6 @@ import Agents.CarAgent;
 import Agents.CarAgentInterface;
 import Agents.MsaAgent;
 import Agents.MsaAgentInterface;
-import Agents.TestAgentInterface;
-import Agents.TesterAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 
@@ -14,24 +12,20 @@ import jade.wrapper.*;
 
 public class JadeController {
 	// Fields
-	private final CarGateway _carGateway;
-	private final MsaGateway _msaGateway;
 	private final ContainerController _mainContainer;
 	private final ContainerController _carContainer;
 	private int _numOfCarAgents = 0;
 	
 	// Constructors
 	public JadeController() {
-		_carGateway = new CarGateway();
-		_msaGateway = new MsaGateway();
 		_mainContainer = createContainer(null, true, true);
 		_carContainer = createContainer("car_container", false, false);
 	}
 	
 	// Methods
-	public CarAgentInterface createCarAgent() throws StaleProxyException { // todo make this return interface of new agent
+	public CarAgentInterface createCarAgent() throws StaleProxyException {
 		AgentController agentController = _carContainer
-				.createNewAgent("car_agent" + String.valueOf(_numOfCarAgents++), CarAgent.class.getName(), new Object[0]);
+				.createNewAgent("car_agent" + String.valueOf(_numOfCarAgents++), CarAgent.class.getName(), new Object[] { "Small", 10.0, 20.0, "15/10/2018","15/10/2018" });
 		
 		agentController.start();
 		return agentController.getO2AInterface(CarAgentInterface.class);
@@ -39,7 +33,7 @@ public class JadeController {
 	
 	public MsaAgentInterface createMsaAgent() throws StaleProxyException{
 		AgentController agentController = _mainContainer
-				.createNewAgent("msa_agent", MsaAgent.class.getName(),new Object[0]);
+				.createNewAgent("msa_agent", MsaAgent.class.getName(),new Object[] {100,100,100}); //TODO replace this with config values
 		
 		agentController.start();
 		return agentController.getO2AInterface(MsaAgentInterface.class);		

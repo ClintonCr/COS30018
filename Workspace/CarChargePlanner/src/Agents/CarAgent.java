@@ -1,12 +1,17 @@
 package Agents;
 
+import java.io.IOException;
+
+import Enums.CarType;
+import Helpers.CarTypeTranslator;
+import Models.Car;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
 public class CarAgent extends Agent implements CarAgentInterface{
 	
-	private int currentCapacity = 2;
+	private Car _car;
 	
 	public CarAgent() {
 		registerO2AInterface(CarAgentInterface.class, this);
@@ -14,17 +19,16 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	
 	//Create car agent on init and then send message through to MSA 
 	
-	protected void setup() {
-		currentCapacity = 1;
-		
-		ACLMessage aMsg = new ACLMessage(ACLMessage.INFORM);
-		aMsg.setContent(String.valueOf(getCapacity()));
-		aMsg.addReceiver(new AID("msa_agent",AID.ISLOCALNAME));
-		send(aMsg);
-	}
-	
-	public int getCapacity(){
-		return currentCapacity;
+	protected void setup() {		
+		try {
+			_car = new Car(this.getName(), this.getArguments());
+			ACLMessage aMsg = new ACLMessage(ACLMessage.INFORM);
+			aMsg.setContentObject(_car); //;(getAID().getName()); //todo pass through other shit as well
+			aMsg.addReceiver(new AID("msa_agent",AID.ISLOCALNAME));
+			send(aMsg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
