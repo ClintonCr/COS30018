@@ -31,9 +31,4 @@ public class AgentHelper {
 		 
 		 return batchResult;
 	}
-	
-	//(String uniqueAgentName, CarType carType, double minChargeCapacity, double maxChargeCapacity, Date earliestStartDate, Date latestFinishDate)
-	public static Car toCar(String csv) {
-		return new Car(csv, CarType.Large, 100, 200, new Date(), new Date());
-	}
 }

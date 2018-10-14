@@ -1,8 +1,9 @@
 package Agents;
 
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import Algorithms.CustomAlgorithm;
 import Helpers.AgentHelper;
@@ -17,10 +18,12 @@ public class MsaAgent extends Agent {
 	// Fields
 	final private List<Car> _cars;
 	final private List<Pump> _pumps;
+	final private Map<Car,Pump> _currentCarPump;
 	
 	public MsaAgent(){
 		_cars = new ArrayList<>();
 		_pumps = new ArrayList<>();
+		_currentCarPump = new HashMap<>();
 	}
 	
 	protected void setup(){
