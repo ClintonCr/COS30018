@@ -4,7 +4,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.Console;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -13,19 +16,24 @@ import Agents.CarAgentInterface;
 import Agents.MsaAgentInterface;
 import Controllers.JadeController;
 import jade.wrapper.StaleProxyException;
+import Enums.CarType;
+import Models.Car;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import java.awt.BorderLayout;
-import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JTable;
 
 public class UI {
 	private JFrame frame;
 	private JadeController _jadeController;
 	private MsaAgentInterface _msaAgent;
 	private List<CarAgentInterface> _carAgents;
+	private JTable table;
+	private DefaultTableModel model = new DefaultTableModel();
 	
 	/**
 	 * Launch the application.
@@ -47,13 +55,17 @@ public class UI {
 	 * Create the application.
 	 */
 	public UI() {
-		// Initilise fields
+		// Initialise fields
 		frame = new JFrame();
 		_jadeController = new JadeController();
 		_carAgents = new ArrayList<>();
 		
 		// Create MSA Agent
-		createAgent(false); // createCarAgent = false
+		try {
+			createMsa();
+		} catch(Exception e) {
+			e.getStackTrace();
+		}
 		
 		initialize();
 	}
@@ -70,6 +82,7 @@ public class UI {
 		
 		JComboBox cmbCarType = new JComboBox();
 		cmbCarType.setBounds(471, 232, 90, 16);
+		cmbCarType.setModel(new DefaultComboBoxModel<>(CarType.values()));
 		frame.getContentPane().add(cmbCarType);
 		
 		JLabel lblChargetype = new JLabel("Car Type:");
@@ -114,7 +127,7 @@ public class UI {
 		txtMaxCharge.setBounds(471, 292,  90,  16);
 		txtMaxCharge.addFocusListener(new FocusListener() {
 			
-			@Override
+			@Override //Refactor focus listeners into one.
 			public void focusLost(FocusEvent fe) {
 				
 				if(txtMaxCharge.getText().isEmpty()) {
@@ -194,28 +207,85 @@ public class UI {
 		btnAddButton.setBounds(424, 377, 90, 28);
 		frame.getContentPane().add(btnAddButton);
 		
+		//Add Agent table
+		
+		table = new JTable();
+		
+		
+		Object[] columnNames = new Object[7];
+		columnNames[0] = "Agent Id";
+		columnNames[1] = "Min Expected Charge";
+		columnNames[2] = "Max Expected Charge";
+		columnNames[3] = "Start Time";
+		columnNames[4] = "Deadline";
+		columnNames[5] = "Deadline";
+		columnNames[6] = "Deadline"; //, "Current Charge", "Projected min charge"};
+		
+		model.setColumnIdentifiers(columnNames);
+		
+		table.setModel(model);
+		table.setBounds(10,10,551,211);
+		frame.getContentPane().add(table);
+		
+		if (_carAgents.size() != 0) {
+			refreshTable();
+		}
+		
 		btnAddButton.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				createAgent(true); // createCarAgent = true
+				CarType carType;
+				double minChargeCapacity, maxChargeCapacity;
+				String earliestStartTime, deadline ;
+				
+				carType = (CarType)cmbCarType.getSelectedItem();
+				minChargeCapacity = Double.valueOf(txtMinCharge.getText());
+				maxChargeCapacity = Double.valueOf(txtMaxCharge.getText());
+				earliestStartTime = txtStartTime.getText();
+				deadline = txtDeadlineTime.getText();
+
+				
+				createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
 			}
 		});
 	}
 	
-	private void createAgent(boolean createCarAgent) {
+	private void createAgent(CarType carType,double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
 		try {
-			if (createCarAgent) {
-				_carAgents.add(_jadeController.createCarAgent());
-			}
-			else {
-				// This will through an error if the MSA already exists
-				_msaAgent = _jadeController.createMsaAgent();
-			}
+			_carAgents.add(_jadeController.createCarAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline));
 		}
 		catch (Exception e) {
 			// TODO - log this correctly?
 			e.printStackTrace();
 		}
+		if (_carAgents.size() != 0) {
+			refreshTable();
+		}
+		
+	}
+	
+	private void createMsa() throws StaleProxyException {
+		_msaAgent = _jadeController.createMsaAgent();
+	}
+	
+	private void refreshTable() {
+		
+		List<Car> tempCarList = _msaAgent.getCars();
+		Object[] rowData = new Object[5];
+		
+		for (int i = 0; i < tempCarList.size(); i++) {
+			rowData[0] = tempCarList.get(i).getId();
+			rowData[1] = tempCarList.get(i).getMinChargeCapacity();
+			rowData[2] = tempCarList.get(i).getMaxChargeCapacity();
+			rowData[3] = tempCarList.get(i).getEarliestStartDate();
+			rowData[4] = tempCarList.get(i).getLatestFinishDate();
+			
+			model.addRow(rowData);
+		}
+		
+		
+		
+		
 	}
 }

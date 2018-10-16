@@ -24,6 +24,7 @@ public class Car implements Serializable{
 	
 	// Constructors
 	public Car(String uniqueAgentName, CarType carType, double minChargeCapacity, double maxChargeCapacity, Date earliestStartDate, Date latestFinishDate) {
+		
 		_uniqueAgentName = uniqueAgentName;
 		_carType = carType;
 		_minChargeCapacity = minChargeCapacity;
@@ -36,7 +37,7 @@ public class Car implements Serializable{
 		DateFormat format = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
 		
 		_uniqueAgentName = uniqueAgentName;
-		_carType = CarType.valueOf((String)args[0]);
+		_carType = (CarType)args[0];
 		_minChargeCapacity = (double)args[1];
 		_maxChargeCapacity = (double)args[2];
 		_earliestStartDate = format.parse((String)args[3]);
@@ -46,5 +47,25 @@ public class Car implements Serializable{
 	// Properties
 	public String getId() {
 		return _uniqueAgentName;
+	}
+	
+	public double getMinChargeCapacity() {
+		return _minChargeCapacity;
+	}
+	
+	public double getMaxChargeCapacity() {
+		return _maxChargeCapacity;
+	}
+	
+	public Date getEarliestStartDate() {
+		return _earliestStartDate;
+	}
+	
+	public Date getLatestFinishDate() {
+		return _latestFinishDate;
+	}
+	
+	public CarType getCarType() {
+		return _carType;
 	}
 }

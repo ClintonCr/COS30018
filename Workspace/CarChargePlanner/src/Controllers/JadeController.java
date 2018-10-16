@@ -1,10 +1,14 @@
 package Controllers;
 
 import jade.core.Runtime;
+
+import java.util.Date;
+
 import Agents.CarAgent;
 import Agents.CarAgentInterface;
 import Agents.MsaAgent;
 import Agents.MsaAgentInterface;
+import Enums.CarType;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 
@@ -23,9 +27,10 @@ public class JadeController {
 	}
 	
 	// Methods
-	public CarAgentInterface createCarAgent() throws StaleProxyException {
+	public CarAgentInterface createCarAgent(CarType carType,double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) throws StaleProxyException {
 		AgentController agentController = _carContainer
-				.createNewAgent("car_agent" + String.valueOf(_numOfCarAgents++), CarAgent.class.getName(), new Object[] { "Small", 10.0, 20.0, "15/10/2018","15/10/2018" });
+				.createNewAgent("car_agent" + String.valueOf(_numOfCarAgents++), CarAgent.class.getName(), new Object[] { carType, minChargeCapacity,
+						maxChargeCapacity, earliestStartTime,deadline });
 		
 		agentController.start();
 		return agentController.getO2AInterface(CarAgentInterface.class);

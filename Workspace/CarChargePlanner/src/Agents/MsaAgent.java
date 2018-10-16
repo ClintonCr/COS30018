@@ -1,5 +1,6 @@
 package Agents;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,5 +56,9 @@ public class MsaAgent extends Agent {
 		for(Pump pump:_pumps) {
 			System.out.println(pump.getId());
 		}
+	}
+	
+	public List<Car> getCars(){
+		return _cars;
 	}
 }

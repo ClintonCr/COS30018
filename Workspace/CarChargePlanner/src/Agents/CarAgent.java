@@ -35,6 +35,5 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	public int getSuccess() {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-	
+	}	
 }
