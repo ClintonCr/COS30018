@@ -2,10 +2,15 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Console;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import javax.swing.JFrame;
+
 
 import Agents.CarAgentInterface;
 import Agents.MsaAgentInterface;
@@ -20,6 +25,7 @@ public class UI {
 	private JadeController _jadeController;
 	private MsaAgentInterface _msaAgent;
 	private List<CarAgentInterface> _carAgents;
+	private Properties _properties = new Properties();
 	
 	/**
 	 * Launch the application.
@@ -46,9 +52,17 @@ public class UI {
 		_jadeController = new JadeController();
 		_carAgents = new ArrayList<>();
 		
+		// Load in config
+		try {
+			String projPath = System.getProperty("user.dir");
+			String configPath = projPath + "//res//appConfig.txt";
+			_properties.load(new FileInputStream(configPath));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		// Create MSA Agent
 		createAgent(false); // createCarAgent = false
-		
 		initialize();
 	}
 
