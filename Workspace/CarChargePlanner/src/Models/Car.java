@@ -8,6 +8,10 @@ import java.util.Date;
 import java.util.Locale;
 
 import Enums.*;
+import Helpers.CarSpecification;
+import Helpers.CarTypeTranslator;
+import Helpers.PumpSpecification;
+import Helpers.PumpTypeTranslator;
 
 public class Car implements Serializable{
 	// Fields
@@ -18,9 +22,10 @@ public class Car implements Serializable{
 	final private Date _earliestStartDate;
 	final private Date _latestFinishDate;	
 	// Operating fields
+	private double _priority; //updated on refresh
+	private double _currentCapacity; //updated on refresh
 	private boolean _isConnected;
 	private PumpType _currentPumpType;
-	private Date _projectedEndDate;	
 	
 	// Constructors
 	public Car(String uniqueAgentName, CarType carType, double minChargeCapacity, double maxChargeCapacity, Date earliestStartDate, Date latestFinishDate) {
@@ -30,6 +35,8 @@ public class Car implements Serializable{
 		_maxChargeCapacity = maxChargeCapacity;
 		_earliestStartDate = earliestStartDate;
 		_latestFinishDate = latestFinishDate;
+		_currentCapacity = 0;
+		_isConnected = false;
 	}
 	
 	public Car(String uniqueAgentName, Object[] args) throws ParseException {
@@ -43,8 +50,24 @@ public class Car implements Serializable{
 		_latestFinishDate = format.parse((String)args[4]);
 	}
 	
-	// Properties
-	public String getId() {
-		return _uniqueAgentName;
+	// Methods
+	public void refresh() {
+		CarSpecification carSpec = CarTypeTranslator.getCarFromType(_carType);
+		
+		if (_isConnected) {
+			PumpSpecification pumpSpec = PumpTypeTranslator.getPumpFromType(_currentPumpType);
+			double additionalCharge = 0.5 * pumpSpec.getOutputChargeRate();
+			_currentCapacity += additionalCharge;
+		}
+		// Update priority
+		double remainingCharge = _maxChargeCapacity - _currentCapacity;
+		
+		//set isConnected as false and currentPumpType to null
 	}
+	
+	// Properties
+	public String getId() {	return _uniqueAgentName; }
+	public CarType getType() {	return _carType; }
+	public double getCurrentCapacity() { return _currentCapacity; }
+	public boolean getIsConnected() { return _isConnected; }
 }

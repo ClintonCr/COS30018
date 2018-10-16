@@ -1,12 +1,10 @@
 package Helpers;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import Enums.CarType;
+
 import Enums.PumpType;
-import Models.Car;
 import Models.Pump;
 
 public class AgentHelper {

@@ -1,6 +1,5 @@
 package Models;
 
-import java.util.Date;
 
 import Enums.*;
 
@@ -19,4 +18,5 @@ public class Pump {
 
 	// Properties
 	public String getId() {	return _uniqueId; }
+	public PumpType getPumpType() { return _pumpType; }
 }

@@ -1,9 +1,5 @@
 package Agents;
 
-import java.io.IOException;
-
-import Enums.CarType;
-import Helpers.CarTypeTranslator;
 import Models.Car;
 import jade.core.AID;
 import jade.core.Agent;
@@ -23,18 +19,19 @@ public class CarAgent extends Agent implements CarAgentInterface{
 		try {
 			_car = new Car(this.getName(), this.getArguments());
 			ACLMessage aMsg = new ACLMessage(ACLMessage.INFORM);
-			aMsg.setContentObject(_car); //;(getAID().getName()); //todo pass through other shit as well
+			aMsg.setContentObject(_car);
 			aMsg.addReceiver(new AID("msa_agent",AID.ISLOCALNAME));
 			send(aMsg);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
-	@Override
-	public int getSuccess() {
-		// TODO Auto-generated method stub
-		return 0;
+	
+	public void end() {
+		doDelete();
 	}
 	
+	protected void takeDown() {
+		System.out.println("Car agent "+ getName() + " is terminating.");
+	}
 }
