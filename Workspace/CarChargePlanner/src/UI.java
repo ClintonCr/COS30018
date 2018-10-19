@@ -1,31 +1,55 @@
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.Console;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
-
 
 import Agents.CarAgentInterface;
 import Agents.MsaAgentInterface;
 import Controllers.JadeController;
 import jade.wrapper.StaleProxyException;
+import Enums.CarType;
+import Helpers.CarSpecification;
+import Helpers.CarTypeTranslator;
+import Models.Car;
+import Models.Pump;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import java.awt.BorderLayout;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 public class UI {
-	private JFrame frame;
+	private JFrame _frame;
 	private JadeController _jadeController;
 	private MsaAgentInterface _msaAgent;
 	private List<CarAgentInterface> _carAgents;
+	final private JTable _carOverviewTable;
 	private Properties _properties = new Properties();
+	private DefaultTableModel _carOverviewModel = new DefaultTableModel();
+	private Timer _aTimer = new Timer();
+	final private JTable _carScheduleTable;
+	private DefaultTableModel _carScheduleModel = new DefaultTableModel();
 	
 	/**
 	 * Launch the application.
@@ -35,7 +59,7 @@ public class UI {
 			public void run() {
 				try {
 					UI window = new UI();
-					window.frame.setVisible(true);
+					window._frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -47,8 +71,8 @@ public class UI {
 	 * Create the application.
 	 */
 	public UI() {
-		// Initilise fields
-		frame = new JFrame();
+		// Initialise fields
+		_frame = new JFrame();
 		_jadeController = new JadeController();
 		_carAgents = new ArrayList<>();
 		
@@ -62,41 +86,334 @@ public class UI {
 		}
 		
 		// Create MSA Agent
-		createAgent(false); // createCarAgent = false
+		try {
+			int smallPumps = Integer.parseInt(_properties.getProperty("SMALL_PUMP"));
+			int mediumPumps = Integer.parseInt(_properties.getProperty("MEDIUM_PUMP"));
+			int largePumps = Integer.parseInt(_properties.getProperty("LARGE_PUMP"));
+			createMsa(smallPumps, mediumPumps, largePumps);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		_carOverviewTable = new JTable();
+		_carScheduleTable = new JTable();
 		initialize();
 	}
 
 	/**
-	 * Initialize the contents of the frame.
+	 * Initialize the contents of the _frame.
 	 */
 	private void initialize() {
-		frame.setBounds(100, 100, 600, 450);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		_frame.setBounds(100, 100, 600, 450);
+		_frame.setResizable(false);
+		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		_frame.getContentPane().setLayout(null);
 		
-		JButton btnAddButton = new JButton("New button");
-		frame.getContentPane().add(btnAddButton, BorderLayout.WEST);
+		//Car Type
+		
+		JComboBox cmbCarType = new JComboBox();
+		cmbCarType.setBounds(471, 232, 90, 16);
+		cmbCarType.setModel(new DefaultComboBoxModel<>(CarType.values()));
+		_frame.getContentPane().add(cmbCarType);
+		
+		JLabel lblChargetype = new JLabel("Car Type:");
+		lblChargetype.setBounds(377, 232, 90, 16);
+		_frame.getContentPane().add(lblChargetype);
+		
+		//Minimum Expected Charge
+		
+		JLabel lblMinCharge = new JLabel("Minimum Charge");
+		lblMinCharge.setBounds(377, 262, 90, 16);
+		_frame.getContentPane().add(lblMinCharge);
+		
+		JTextField txtMinCharge = new JTextField("Min Charge");
+		txtMinCharge.setBounds(471, 262,  90,  16);
+		txtMinCharge.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent fe) {
+				
+				if(txtMinCharge.getText().isEmpty()) {
+					txtMinCharge.setText("Min Charge");
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent fe) {
+				
+				if (txtMinCharge.getText().equals("Min Charge")) {
+					txtMinCharge.setText("");
+				}
+			}
+		});
+		_frame.getContentPane().add(txtMinCharge);
+		
+		//Maximum Expected Charge
+		
+		JLabel lblMaxCharge = new JLabel("Maximum Charge");
+		lblMaxCharge.setBounds(377, 292, 90, 16);
+		_frame.getContentPane().add(lblMaxCharge);
+		
+		JTextField txtMaxCharge = new JTextField("Max Charge");
+		txtMaxCharge.setBounds(471, 292,  90,  16);
+		txtMaxCharge.addFocusListener(new FocusListener() {
+			
+			@Override //Refactor focus listeners into one.
+			public void focusLost(FocusEvent fe) {
+				
+				if(txtMaxCharge.getText().isEmpty()) {
+					txtMaxCharge.setText("Max Charge");
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent fe) {
+				
+				if (txtMaxCharge.getText().equals("Max Charge")) {
+					txtMaxCharge.setText("");
+				}
+			}
+		});
+		_frame.getContentPane().add(txtMaxCharge);
+		
+		//Start Time
+		
+		JLabel lblStartTime = new JLabel("Start Time");
+		lblStartTime.setBounds(377, 322, 90, 16);
+		_frame.getContentPane().add(lblStartTime);
+		
+		JTextField txtStartTime = new JTextField("Enter Start Time");
+		txtStartTime.setBounds(471, 322,  90,  16);
+		txtStartTime.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent fe) {
+				
+				if(txtStartTime.getText().isEmpty()) {
+					txtStartTime.setText("Enter Start Time");
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent fe) {
+				
+				if (txtStartTime.getText().equals("Enter Start Time")) {
+					txtStartTime.setText("");
+				}
+			}
+		});
+		_frame.getContentPane().add(txtStartTime);
+		
+		//Deadline
+		
+		JLabel lblDeadlineTime = new JLabel("Deadline");
+		lblDeadlineTime.setBounds(377, 352, 90, 16);
+		_frame.getContentPane().add(lblDeadlineTime);
+		
+		JTextField txtDeadlineTime = new JTextField("Enter Deadline");
+		txtDeadlineTime.setBounds(471, 352,  90,  16);
+		txtDeadlineTime.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent fe) {
+				
+				if(txtDeadlineTime.getText().isEmpty()) {
+					txtDeadlineTime.setText("Enter Deadline");
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent fe) {
+				
+				if (txtDeadlineTime.getText().equals("Enter Deadline")) {
+					txtDeadlineTime.setText("");
+				}
+			}
+		});
+		_frame.getContentPane().add(txtDeadlineTime);
+		
+		//Add Agent Button		
+		
+		JButton btnAddButton = new JButton("Add Car");
+		btnAddButton.setBounds(424, 377, 90, 28);
+		_frame.getContentPane().add(btnAddButton);
+		
+		//Add Agent table
+
+		String[] columnNames = new String[7];
+		columnNames[0] = "Agent Id";
+		columnNames[1] = "Min Expected Charge";
+		columnNames[2] = "Max Expected Charge";
+		columnNames[3] = "Start Time";
+		columnNames[4] = "Deadline";
+		columnNames[5] = "Current Charge";
+		columnNames[6] = "Car Type";
+		
+		_carOverviewModel.setColumnIdentifiers(columnNames);
+		_carOverviewTable.setModel(_carOverviewModel);
+		
+		JScrollPane scrollTableOverview = new JScrollPane(_carOverviewTable);
+		scrollTableOverview.setBounds(10,10,551,211);
+		scrollTableOverview.setVisible(true);
+		
+		_frame.getContentPane().add(scrollTableOverview);
+		
+		//Add in schedule table
+		
+		JScrollPane scrollTableSchedule = new JScrollPane(_carScheduleTable);
+		
+		String[] scheduleColumnNames = new String[4];
+		scheduleColumnNames[0] = "Car Id";
+		scheduleColumnNames[1] = "Pump Id";
+		scheduleColumnNames[2] = "Current Charge";
+		scheduleColumnNames[3] = "Projected Finish Time";
+		
+		_carScheduleModel.setColumnIdentifiers(scheduleColumnNames);
+		_carScheduleTable.setModel(_carScheduleModel);
+		
+		scrollTableSchedule.setBounds(10,233,355,135);
+		scrollTableSchedule.setVisible(true);
+		
+		_frame.getContentPane().add(scrollTableSchedule);
+		
+		TimerTask aTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				Map<Car,Pump> tempSchedule = _msaAgent.getMap();
+				List<Car> tempCarList = _msaAgent.getCars();
+				refreshCarOverviewTable(tempCarList);
+				refreshCarSchedule(tempCarList, tempSchedule);
+			}
+		};
+		_aTimer.scheduleAtFixedRate(aTask, 0, 5000);
+		
 		btnAddButton.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				createAgent(true); // createCarAgent = true
+				CarType carType;
+				boolean validDeadline;
+				boolean validStartTime;
+				double minChargeCapacity, maxChargeCapacity;
+				String earliestStartTime, deadline ;
+				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+				
+				carType = (CarType)cmbCarType.getSelectedItem();
+				minChargeCapacity = Double.valueOf(txtMinCharge.getText());
+				maxChargeCapacity = Double.valueOf(txtMaxCharge.getText());
+				
+				earliestStartTime = txtStartTime.getText();
+				deadline = txtDeadlineTime.getText();
+				
+				validStartTime = isThisDateValid(earliestStartTime, format);
+				validDeadline = isThisDateValid(deadline, format);
+
+				if (!(validStartTime || validDeadline)) {
+					System.out.println("Invalid Date");
+				}
+				createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
 			}
 		});
 	}
 	
-	private void createAgent(boolean createCarAgent) {
+	public boolean isThisDateValid(String dateToValidate, SimpleDateFormat sdf) {
+		
+		if(dateToValidate == null) {
+			return false;
+		}
+		
+		sdf.setLenient(false);
+		
 		try {
-			if (createCarAgent) {
-				_carAgents.add(_jadeController.createCarAgent());
-			}
-			else {
-				// This will through an error if the MSA already exists
-				_msaAgent = _jadeController.createMsaAgent();
-			}
+			Date date = sdf.parse(dateToValidate);
+		} catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	private void createAgent(CarType carType,double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
+		try {
+			_carAgents.add(_jadeController.createCarAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline));
 		}
 		catch (Exception e) {
 			// TODO - log this correctly?
 			e.printStackTrace();
 		}
+	}
+	
+	private void createMsa(int smallPumps, int mediumPumps, int largePumps) throws StaleProxyException {
+		_msaAgent = _jadeController.createMsaAgent(smallPumps, mediumPumps, largePumps);
+	}
+	
+	private void refreshCarOverviewTable(List<Car> tempCarList) {
+		_carOverviewModel.setRowCount(0);
+		
+		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+		String[] rowData = new String[7];
+		
+		for (int i = 0; i < tempCarList.size(); i++) {
+			rowData[0] = tempCarList.get(i).getId();
+			rowData[1] = String.valueOf(tempCarList.get(i).getMinChargeCapacity());
+			rowData[2] = String.valueOf(tempCarList.get(i).getMaxChargeCapacity());
+			rowData[3] = format.format(tempCarList.get(i).getEarliestStartDate());
+			rowData[4] = format.format(tempCarList.get(i).getLatestFinishDate());
+			rowData[5] = String.valueOf(tempCarList.get(i).getCurrentCapacity());
+			rowData[6] = String.valueOf(tempCarList.get(i).getType());
+			_carOverviewModel.addRow(rowData);
+		}
+	}
+	
+	private void refreshCarSchedule(List<Car> tempCarList, Map<Car,Pump> tempSchedule) {
+		_carScheduleModel.setRowCount(0);
+		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+		String[] rowData = new String[4];
+		
+		
+		Iterator it = tempSchedule.entrySet().iterator();
+		while(it.hasNext()) {
+			
+			Map.Entry aPair = (Map.Entry)it.next(); 
+			
+			Car aCar = (Car)aPair.getKey();
+			Pump aPump = (Pump)aPair.getValue();
+			
+			rowData[0] = aCar.getId();
+			rowData[1] = aPump.getId();
+			rowData[2] = String.valueOf(aCar.getCurrentCapacity());
+			rowData[3] = format.format(calculateExpectedCompletionTime(aCar.getCurrentCapacity(), aCar.getMinChargeCapacity(), 
+					CarTypeTranslator.getCarFromType(aCar.getType())));
+			it.remove();
+
+			_carScheduleModel.addRow(rowData);
+		}
+	}
+	
+	private Date calculateExpectedCompletionTime(double currentCapacity, double minCapacity, CarSpecification carSpec) {
+		double remainingCharge = 0;
+		double hoursTillMin = 0;
+		double chargeRate = carSpec.getRateOfCharge();
+		Date estimatedCompletionTime = new Date();
+		
+		//need to account for when above min
+		remainingCharge = minCapacity - currentCapacity;
+		Date minRequiredTime = new Date();
+		
+		hoursTillMin = remainingCharge/chargeRate;
+		
+		estimatedCompletionTime = addHoursToJavaUtilDate(minRequiredTime, (Math.round(hoursTillMin * 2)/2.0));
+		return estimatedCompletionTime;
+	}
+	
+	public Date addHoursToJavaUtilDate(Date date, double hours) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		int minutes;
+		minutes = (int) (hours * 60);
+		calendar.add(Calendar.MINUTE,minutes);
+		return calendar.getTime();
+		
 	}
 }

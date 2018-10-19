@@ -29,6 +29,7 @@ public class Car implements Serializable{
 	
 	// Constructors
 	public Car(String uniqueAgentName, CarType carType, double minChargeCapacity, double maxChargeCapacity, Date earliestStartDate, Date latestFinishDate) {
+		
 		_uniqueAgentName = uniqueAgentName;
 		_carType = carType;
 		_minChargeCapacity = minChargeCapacity;
@@ -40,10 +41,10 @@ public class Car implements Serializable{
 	}
 	
 	public Car(String uniqueAgentName, Object[] args) throws ParseException {
-		DateFormat format = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 		
 		_uniqueAgentName = uniqueAgentName;
-		_carType = CarType.valueOf((String)args[0]);
+		_carType = (CarType)args[0];
 		_minChargeCapacity = (double)args[1];
 		_maxChargeCapacity = (double)args[2];
 		_earliestStartDate = format.parse((String)args[3]);
@@ -66,8 +67,13 @@ public class Car implements Serializable{
 	}
 	
 	// Properties
+	public double getMinChargeCapacity() {return _minChargeCapacity;}
+	public double getMaxChargeCapacity() {return _maxChargeCapacity;}
+	public Date getEarliestStartDate() {return _earliestStartDate;}
+	public Date getLatestFinishDate() {return _latestFinishDate;}
+	public PumpType getCarPumpType() {return _currentPumpType;}
 	public String getId() {	return _uniqueAgentName; }
-	public CarType getType() {	return _carType; }
+	public CarType getType() { return _carType; }
 	public double getCurrentCapacity() { return _currentCapacity; }
 	public boolean getIsConnected() { return _isConnected; }
 }
