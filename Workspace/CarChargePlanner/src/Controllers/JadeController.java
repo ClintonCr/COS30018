@@ -36,13 +36,21 @@ public class JadeController {
 		return agentController.getO2AInterface(CarAgentInterface.class);
 	}
 	
-	public MsaAgentInterface createMsaAgent() throws StaleProxyException{
+	public MsaAgentInterface createMsaAgent(int smallPumps, int mediumPumps, int largePumps) throws StaleProxyException{
 		AgentController agentController = _mainContainer
-				.createNewAgent("msa_agent", MsaAgent.class.getName(),new Object[] {100,100,100}); //TODO replace this with config values
+				.createNewAgent("msa_agent", MsaAgent.class.getName(),new Object[] {smallPumps,mediumPumps,largePumps}); //TODO replace this with config values
 		
 		agentController.start();
 		return agentController.getO2AInterface(MsaAgentInterface.class);		
 	}
+	
+	//todo - add a start simulation endpoint
+	
+	//todo - add a delete all car agent endpoint
+	
+	//todo - add a single car agent endpoint?
+	
+	//todo - manually trigger a MSA update...
 	
 	// Helpers
 	private static ContainerController createContainer(String name, boolean showGui, boolean isMainContainer) {

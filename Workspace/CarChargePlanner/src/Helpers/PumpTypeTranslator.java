@@ -1,6 +1,5 @@
 package Helpers;
 
-import Models.*;
 import Enums.*;
 import java.util.*;
 
@@ -20,7 +19,7 @@ public class PumpTypeTranslator {
 	 * 
 	 * @Returns constant pump details.
 	 * */
-	public static PumpSpecification getCarFromType(PumpType pumpType) {
+	public static PumpSpecification getPumpFromType(PumpType pumpType) {
 		return _pumpTypeSpecificationMap.get(pumpType);
 	}
 }

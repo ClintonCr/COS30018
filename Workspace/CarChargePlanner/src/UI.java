@@ -3,12 +3,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.Console;
-import java.text.ParseException;
+import java.io.FileInputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 
@@ -17,14 +23,20 @@ import Agents.MsaAgentInterface;
 import Controllers.JadeController;
 import jade.wrapper.StaleProxyException;
 import Enums.CarType;
+import Helpers.CarSpecification;
+import Helpers.CarTypeTranslator;
 import Models.Car;
+import Models.Pump;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+
+
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 public class UI {
@@ -32,8 +44,13 @@ public class UI {
 	private JadeController _jadeController;
 	private MsaAgentInterface _msaAgent;
 	private List<CarAgentInterface> _carAgents;
-	private JTable table;
-	private DefaultTableModel model = new DefaultTableModel();
+	final private JTable carOverviewTable;
+	private Properties _properties = new Properties();
+	private DefaultTableModel carOverviewModel = new DefaultTableModel();
+	private Timer aTimer = new Timer();
+	final private JTable carScheduleTable;
+	private DefaultTableModel carScheduleModel = new DefaultTableModel();
+	public static final long HOUR = 3600*1000;
 	
 	/**
 	 * Launch the application.
@@ -60,13 +77,27 @@ public class UI {
 		_jadeController = new JadeController();
 		_carAgents = new ArrayList<>();
 		
+		// Load in config
+		try {
+			String projPath = System.getProperty("user.dir");
+			String configPath = projPath + "//res//appConfig.txt";
+			_properties.load(new FileInputStream(configPath));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		// Create MSA Agent
 		try {
-			createMsa();
+			int smallPumps = Integer.parseInt(_properties.getProperty("SMALL_PUMP"));
+			int mediumPumps = Integer.parseInt(_properties.getProperty("MEDIUM_PUMP"));
+			int largePumps = Integer.parseInt(_properties.getProperty("LARGE_PUMP"));
+			createMsa(smallPumps, mediumPumps, largePumps);
 		} catch(Exception e) {
 			e.getStackTrace();
 		}
 		
+		carOverviewTable = new JTable();
+		carScheduleTable = new JTable();
 		initialize();
 	}
 
@@ -75,6 +106,7 @@ public class UI {
 	 */
 	private void initialize() {
 		frame.setBounds(100, 100, 600, 450);
+		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
@@ -208,28 +240,54 @@ public class UI {
 		frame.getContentPane().add(btnAddButton);
 		
 		//Add Agent table
-		
-		table = new JTable();
-		
-		
+
 		Object[] columnNames = new Object[7];
 		columnNames[0] = "Agent Id";
 		columnNames[1] = "Min Expected Charge";
 		columnNames[2] = "Max Expected Charge";
 		columnNames[3] = "Start Time";
 		columnNames[4] = "Deadline";
-		columnNames[5] = "Deadline";
-		columnNames[6] = "Deadline"; //, "Current Charge", "Projected min charge"};
+		columnNames[5] = "Current Charge";
+		columnNames[6] = "Car Type";
 		
-		model.setColumnIdentifiers(columnNames);
+		carOverviewModel.setColumnIdentifiers(columnNames);
+		carOverviewTable.setModel(carOverviewModel);
 		
-		table.setModel(model);
-		table.setBounds(10,10,551,211);
-		frame.getContentPane().add(table);
+		JScrollPane scroll_table = new JScrollPane(carOverviewTable);
+		scroll_table.setBounds(10,10,551,211);
+		scroll_table.setVisible(true);
 		
-		if (_carAgents.size() != 0) {
-			refreshTable();
-		}
+		frame.getContentPane().add(scroll_table);
+		
+		//Add in schedule table
+		
+		JScrollPane scroll_table_schedule = new JScrollPane(carScheduleTable);
+		
+		Object[] scheduleColumnNames = new Object[4];
+		scheduleColumnNames[0] = "Car Id";
+		scheduleColumnNames[1] = "Pump Id";
+		scheduleColumnNames[2] = "Current Charge";
+		scheduleColumnNames[3] = "Projected Finish Time";
+		
+		carScheduleModel.setColumnIdentifiers(scheduleColumnNames);
+		carScheduleTable.setModel(carScheduleModel);
+		
+		scroll_table_schedule.setBounds(10,233,355,135);
+		scroll_table_schedule.setVisible(true);
+		
+		frame.getContentPane().add(scroll_table_schedule);
+		
+		TimerTask aTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				Map<Car,Pump> tempSchedule = _msaAgent.getMap();
+				List<Car> tempCarList = _msaAgent.getCars();
+				refreshCarOverviewTable(tempCarList);
+				refreshCarSchedule(tempCarList, tempSchedule);
+			}
+		};
+		aTimer.scheduleAtFixedRate(aTask, 0, 5000);
 		
 		btnAddButton.addActionListener(new ActionListener() {
 			
@@ -244,7 +302,6 @@ public class UI {
 				maxChargeCapacity = Double.valueOf(txtMaxCharge.getText());
 				earliestStartTime = txtStartTime.getText();
 				deadline = txtDeadlineTime.getText();
-
 				
 				createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
 			}
@@ -259,33 +316,72 @@ public class UI {
 			// TODO - log this correctly?
 			e.printStackTrace();
 		}
-		if (_carAgents.size() != 0) {
-			refreshTable();
-		}
-		
 	}
 	
-	private void createMsa() throws StaleProxyException {
-		_msaAgent = _jadeController.createMsaAgent();
+	private void createMsa(int smallPumps, int mediumPumps, int largePumps) throws StaleProxyException {
+		_msaAgent = _jadeController.createMsaAgent(smallPumps, mediumPumps, largePumps);
 	}
 	
-	private void refreshTable() {
+	private void refreshCarOverviewTable(List<Car> tempCarList) {
+		carOverviewModel.setRowCount(0);
 		
-		List<Car> tempCarList = _msaAgent.getCars();
-		Object[] rowData = new Object[5];
+		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+		Object[] rowData = new Object[7];
 		
 		for (int i = 0; i < tempCarList.size(); i++) {
 			rowData[0] = tempCarList.get(i).getId();
 			rowData[1] = tempCarList.get(i).getMinChargeCapacity();
 			rowData[2] = tempCarList.get(i).getMaxChargeCapacity();
-			rowData[3] = tempCarList.get(i).getEarliestStartDate();
-			rowData[4] = tempCarList.get(i).getLatestFinishDate();
-			
-			model.addRow(rowData);
+			rowData[3] = format.format(tempCarList.get(i).getEarliestStartDate());
+			rowData[4] = format.format(tempCarList.get(i).getLatestFinishDate());
+			rowData[5] = tempCarList.get(i).getCurrentCapacity();
+			rowData[6] = tempCarList.get(i).getType();
+			carOverviewModel.addRow(rowData);
 		}
+	}
+	
+	private void refreshCarSchedule(List<Car> tempCarList, Map<Car,Pump> tempSchedule) {
+		carScheduleModel.setRowCount(0);
+		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+		Object[] rowData = new Object[4];
 		
 		
+		Iterator it = tempSchedule.entrySet().iterator();
+		while(it.hasNext()) {
+			
+			Map.Entry aPair = (Map.Entry)it.next(); 
+			
+			Car aCar = (Car)aPair.getKey();
+			Pump aPump = (Pump)aPair.getValue();
+			
+			rowData[0] = aCar.getId();
+			rowData[1] = aPump.getId();
+			rowData[2] = aCar.getCurrentCapacity();
+			rowData[3] = format.format(calculateExpectedCompletionTime(aCar.getCurrentCapacity(), aCar.getMinChargeCapacity(), 
+					CarTypeTranslator.getCarFromType(aCar.getType())));
+			it.remove();
+
+			carScheduleModel.addRow(rowData);
+		}
+	}
+	
+	private Date calculateExpectedCompletionTime(double currentCapacity, double minCapacity, CarSpecification carSpec) {
+		double remainingCharge = 0;
+		double hoursTillMin = 0;
+		double chargeRate = carSpec.getRateOfCharge();
 		
+		//need to account for when above min
+		remainingCharge = minCapacity - currentCapacity;
+		Date minRequiredTime = new Date();
 		
+		hoursTillMin = remainingCharge/chargeRate;
+		hoursTillMin = roundToHalf(hoursTillMin);
+		
+		Date estimatedCompletionTime = new Date(minRequiredTime.getTime() + ((long)hoursTillMin * HOUR));
+		return estimatedCompletionTime;
+	}
+	
+	private double roundToHalf(double unrounded) {
+		return Math.round(unrounded * 2)/2.0;
 	}
 }
