@@ -40,17 +40,16 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 public class UI {
-	private JFrame frame;
+	private JFrame _frame;
 	private JadeController _jadeController;
 	private MsaAgentInterface _msaAgent;
 	private List<CarAgentInterface> _carAgents;
-	final private JTable carOverviewTable;
+	final private JTable _carOverviewTable;
 	private Properties _properties = new Properties();
-	private DefaultTableModel carOverviewModel = new DefaultTableModel();
-	private Timer aTimer = new Timer();
-	final private JTable carScheduleTable;
-	private DefaultTableModel carScheduleModel = new DefaultTableModel();
-	public static final long HOUR = 3600*1000;
+	private DefaultTableModel _carOverviewModel = new DefaultTableModel();
+	private Timer _aTimer = new Timer();
+	final private JTable _carScheduleTable;
+	private DefaultTableModel _carScheduleModel = new DefaultTableModel();
 	
 	/**
 	 * Launch the application.
@@ -60,7 +59,7 @@ public class UI {
 			public void run() {
 				try {
 					UI window = new UI();
-					window.frame.setVisible(true);
+					window._frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -73,7 +72,7 @@ public class UI {
 	 */
 	public UI() {
 		// Initialise fields
-		frame = new JFrame();
+		_frame = new JFrame();
 		_jadeController = new JadeController();
 		_carAgents = new ArrayList<>();
 		
@@ -96,36 +95,36 @@ public class UI {
 			e.printStackTrace();
 		}
 		
-		carOverviewTable = new JTable();
-		carScheduleTable = new JTable();
+		_carOverviewTable = new JTable();
+		_carScheduleTable = new JTable();
 		initialize();
 	}
 
 	/**
-	 * Initialize the contents of the frame.
+	 * Initialize the contents of the _frame.
 	 */
 	private void initialize() {
-		frame.setBounds(100, 100, 600, 450);
-		frame.setResizable(false);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(null);
+		_frame.setBounds(100, 100, 600, 450);
+		_frame.setResizable(false);
+		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		_frame.getContentPane().setLayout(null);
 		
 		//Car Type
 		
 		JComboBox cmbCarType = new JComboBox();
 		cmbCarType.setBounds(471, 232, 90, 16);
 		cmbCarType.setModel(new DefaultComboBoxModel<>(CarType.values()));
-		frame.getContentPane().add(cmbCarType);
+		_frame.getContentPane().add(cmbCarType);
 		
 		JLabel lblChargetype = new JLabel("Car Type:");
 		lblChargetype.setBounds(377, 232, 90, 16);
-		frame.getContentPane().add(lblChargetype);
+		_frame.getContentPane().add(lblChargetype);
 		
 		//Minimum Expected Charge
 		
 		JLabel lblMinCharge = new JLabel("Minimum Charge");
 		lblMinCharge.setBounds(377, 262, 90, 16);
-		frame.getContentPane().add(lblMinCharge);
+		_frame.getContentPane().add(lblMinCharge);
 		
 		JTextField txtMinCharge = new JTextField("Min Charge");
 		txtMinCharge.setBounds(471, 262,  90,  16);
@@ -147,13 +146,13 @@ public class UI {
 				}
 			}
 		});
-		frame.getContentPane().add(txtMinCharge);
+		_frame.getContentPane().add(txtMinCharge);
 		
 		//Maximum Expected Charge
 		
 		JLabel lblMaxCharge = new JLabel("Maximum Charge");
 		lblMaxCharge.setBounds(377, 292, 90, 16);
-		frame.getContentPane().add(lblMaxCharge);
+		_frame.getContentPane().add(lblMaxCharge);
 		
 		JTextField txtMaxCharge = new JTextField("Max Charge");
 		txtMaxCharge.setBounds(471, 292,  90,  16);
@@ -175,13 +174,13 @@ public class UI {
 				}
 			}
 		});
-		frame.getContentPane().add(txtMaxCharge);
+		_frame.getContentPane().add(txtMaxCharge);
 		
 		//Start Time
 		
 		JLabel lblStartTime = new JLabel("Start Time");
 		lblStartTime.setBounds(377, 322, 90, 16);
-		frame.getContentPane().add(lblStartTime);
+		_frame.getContentPane().add(lblStartTime);
 		
 		JTextField txtStartTime = new JTextField("Enter Start Time");
 		txtStartTime.setBounds(471, 322,  90,  16);
@@ -203,13 +202,13 @@ public class UI {
 				}
 			}
 		});
-		frame.getContentPane().add(txtStartTime);
+		_frame.getContentPane().add(txtStartTime);
 		
 		//Deadline
 		
 		JLabel lblDeadlineTime = new JLabel("Deadline");
 		lblDeadlineTime.setBounds(377, 352, 90, 16);
-		frame.getContentPane().add(lblDeadlineTime);
+		_frame.getContentPane().add(lblDeadlineTime);
 		
 		JTextField txtDeadlineTime = new JTextField("Enter Deadline");
 		txtDeadlineTime.setBounds(471, 352,  90,  16);
@@ -231,13 +230,13 @@ public class UI {
 				}
 			}
 		});
-		frame.getContentPane().add(txtDeadlineTime);
+		_frame.getContentPane().add(txtDeadlineTime);
 		
 		//Add Agent Button		
 		
 		JButton btnAddButton = new JButton("Add Car");
 		btnAddButton.setBounds(424, 377, 90, 28);
-		frame.getContentPane().add(btnAddButton);
+		_frame.getContentPane().add(btnAddButton);
 		
 		//Add Agent table
 
@@ -250,18 +249,18 @@ public class UI {
 		columnNames[5] = "Current Charge";
 		columnNames[6] = "Car Type";
 		
-		carOverviewModel.setColumnIdentifiers(columnNames);
-		carOverviewTable.setModel(carOverviewModel);
+		_carOverviewModel.setColumnIdentifiers(columnNames);
+		_carOverviewTable.setModel(_carOverviewModel);
 		
-		JScrollPane scrollTableOverview = new JScrollPane(carOverviewTable);
+		JScrollPane scrollTableOverview = new JScrollPane(_carOverviewTable);
 		scrollTableOverview.setBounds(10,10,551,211);
 		scrollTableOverview.setVisible(true);
 		
-		frame.getContentPane().add(scrollTableOverview);
+		_frame.getContentPane().add(scrollTableOverview);
 		
 		//Add in schedule table
 		
-		JScrollPane scrollTableSchedule = new JScrollPane(carScheduleTable);
+		JScrollPane scrollTableSchedule = new JScrollPane(_carScheduleTable);
 		
 		String[] scheduleColumnNames = new String[4];
 		scheduleColumnNames[0] = "Car Id";
@@ -269,13 +268,13 @@ public class UI {
 		scheduleColumnNames[2] = "Current Charge";
 		scheduleColumnNames[3] = "Projected Finish Time";
 		
-		carScheduleModel.setColumnIdentifiers(scheduleColumnNames);
-		carScheduleTable.setModel(carScheduleModel);
+		_carScheduleModel.setColumnIdentifiers(scheduleColumnNames);
+		_carScheduleTable.setModel(_carScheduleModel);
 		
 		scrollTableSchedule.setBounds(10,233,355,135);
 		scrollTableSchedule.setVisible(true);
 		
-		frame.getContentPane().add(scrollTableSchedule);
+		_frame.getContentPane().add(scrollTableSchedule);
 		
 		TimerTask aTask = new TimerTask() {
 			
@@ -287,7 +286,7 @@ public class UI {
 				refreshCarSchedule(tempCarList, tempSchedule);
 			}
 		};
-		aTimer.scheduleAtFixedRate(aTask, 0, 5000);
+		_aTimer.scheduleAtFixedRate(aTask, 0, 5000);
 		
 		btnAddButton.addActionListener(new ActionListener() {
 			
@@ -350,7 +349,7 @@ public class UI {
 	}
 	
 	private void refreshCarOverviewTable(List<Car> tempCarList) {
-		carOverviewModel.setRowCount(0);
+		_carOverviewModel.setRowCount(0);
 		
 		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 		String[] rowData = new String[7];
@@ -363,12 +362,12 @@ public class UI {
 			rowData[4] = format.format(tempCarList.get(i).getLatestFinishDate());
 			rowData[5] = String.valueOf(tempCarList.get(i).getCurrentCapacity());
 			rowData[6] = String.valueOf(tempCarList.get(i).getType());
-			carOverviewModel.addRow(rowData);
+			_carOverviewModel.addRow(rowData);
 		}
 	}
 	
 	private void refreshCarSchedule(List<Car> tempCarList, Map<Car,Pump> tempSchedule) {
-		carScheduleModel.setRowCount(0);
+		_carScheduleModel.setRowCount(0);
 		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 		String[] rowData = new String[4];
 		
@@ -388,7 +387,7 @@ public class UI {
 					CarTypeTranslator.getCarFromType(aCar.getType())));
 			it.remove();
 
-			carScheduleModel.addRow(rowData);
+			_carScheduleModel.addRow(rowData);
 		}
 	}
 	
