@@ -73,7 +73,7 @@ public class Car implements Serializable{
 	public Date getLatestFinishDate() {return _latestFinishDate;}
 	public PumpType getCarPumpType() {return _currentPumpType;}
 	public String getId() {	return _uniqueAgentName; }
-	public CarType getType() {	return _carType; }
+	public CarType getType() { return _carType; }
 	public double getCurrentCapacity() { return _currentCapacity; }
 	public boolean getIsConnected() { return _isConnected; }
 }

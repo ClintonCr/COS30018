@@ -98,24 +98,6 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 	}
 	
 	public Map<Car,Pump> getMap(){
-		Map<Car,Pump> randomshit = new HashMap<>();
-		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
-		Date earliestStartDate = new Date();
-		Date deadline = new Date();
-		
-		try {
-			earliestStartDate = format.parse("20/10/2018 09:00");
-			deadline = format.parse("20/10/2018 09:30");
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		Car aCar = new Car("haha",CarType.Medium,10,20,earliestStartDate,deadline);
-		Pump aPump = new Pump("haha", PumpType.Medium);
-		
-		randomshit.put(aCar, aPump);
-		
-		return randomshit;
+		return _currentCarPump;
 	}
 }

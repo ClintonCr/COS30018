@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -32,7 +33,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -93,7 +93,7 @@ public class UI {
 			int largePumps = Integer.parseInt(_properties.getProperty("LARGE_PUMP"));
 			createMsa(smallPumps, mediumPumps, largePumps);
 		} catch(Exception e) {
-			e.getStackTrace();
+			e.printStackTrace();
 		}
 		
 		carOverviewTable = new JTable();
@@ -241,7 +241,7 @@ public class UI {
 		
 		//Add Agent table
 
-		Object[] columnNames = new Object[7];
+		String[] columnNames = new String[7];
 		columnNames[0] = "Agent Id";
 		columnNames[1] = "Min Expected Charge";
 		columnNames[2] = "Max Expected Charge";
@@ -253,17 +253,17 @@ public class UI {
 		carOverviewModel.setColumnIdentifiers(columnNames);
 		carOverviewTable.setModel(carOverviewModel);
 		
-		JScrollPane scroll_table = new JScrollPane(carOverviewTable);
-		scroll_table.setBounds(10,10,551,211);
-		scroll_table.setVisible(true);
+		JScrollPane scrollTableOverview = new JScrollPane(carOverviewTable);
+		scrollTableOverview.setBounds(10,10,551,211);
+		scrollTableOverview.setVisible(true);
 		
-		frame.getContentPane().add(scroll_table);
+		frame.getContentPane().add(scrollTableOverview);
 		
 		//Add in schedule table
 		
-		JScrollPane scroll_table_schedule = new JScrollPane(carScheduleTable);
+		JScrollPane scrollTableSchedule = new JScrollPane(carScheduleTable);
 		
-		Object[] scheduleColumnNames = new Object[4];
+		String[] scheduleColumnNames = new String[4];
 		scheduleColumnNames[0] = "Car Id";
 		scheduleColumnNames[1] = "Pump Id";
 		scheduleColumnNames[2] = "Current Charge";
@@ -272,10 +272,10 @@ public class UI {
 		carScheduleModel.setColumnIdentifiers(scheduleColumnNames);
 		carScheduleTable.setModel(carScheduleModel);
 		
-		scroll_table_schedule.setBounds(10,233,355,135);
-		scroll_table_schedule.setVisible(true);
+		scrollTableSchedule.setBounds(10,233,355,135);
+		scrollTableSchedule.setVisible(true);
 		
-		frame.getContentPane().add(scroll_table_schedule);
+		frame.getContentPane().add(scrollTableSchedule);
 		
 		TimerTask aTask = new TimerTask() {
 			
@@ -294,18 +294,45 @@ public class UI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				CarType carType;
+				boolean validDeadline;
+				boolean validStartTime;
 				double minChargeCapacity, maxChargeCapacity;
 				String earliestStartTime, deadline ;
+				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				
 				carType = (CarType)cmbCarType.getSelectedItem();
 				minChargeCapacity = Double.valueOf(txtMinCharge.getText());
 				maxChargeCapacity = Double.valueOf(txtMaxCharge.getText());
+				
 				earliestStartTime = txtStartTime.getText();
 				deadline = txtDeadlineTime.getText();
 				
+				validStartTime = isThisDateValid(earliestStartTime, format);
+				validDeadline = isThisDateValid(deadline, format);
+
+				if (!(validStartTime || validDeadline)) {
+					System.out.println("Invalid Date");
+				}
 				createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
 			}
 		});
+	}
+	
+	public boolean isThisDateValid(String dateToValidate, SimpleDateFormat sdf) {
+		
+		if(dateToValidate == null) {
+			return false;
+		}
+		
+		sdf.setLenient(false);
+		
+		try {
+			Date date = sdf.parse(dateToValidate);
+		} catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 	
 	private void createAgent(CarType carType,double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
@@ -326,16 +353,16 @@ public class UI {
 		carOverviewModel.setRowCount(0);
 		
 		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
-		Object[] rowData = new Object[7];
+		String[] rowData = new String[7];
 		
 		for (int i = 0; i < tempCarList.size(); i++) {
 			rowData[0] = tempCarList.get(i).getId();
-			rowData[1] = tempCarList.get(i).getMinChargeCapacity();
-			rowData[2] = tempCarList.get(i).getMaxChargeCapacity();
+			rowData[1] = String.valueOf(tempCarList.get(i).getMinChargeCapacity());
+			rowData[2] = String.valueOf(tempCarList.get(i).getMaxChargeCapacity());
 			rowData[3] = format.format(tempCarList.get(i).getEarliestStartDate());
 			rowData[4] = format.format(tempCarList.get(i).getLatestFinishDate());
-			rowData[5] = tempCarList.get(i).getCurrentCapacity();
-			rowData[6] = tempCarList.get(i).getType();
+			rowData[5] = String.valueOf(tempCarList.get(i).getCurrentCapacity());
+			rowData[6] = String.valueOf(tempCarList.get(i).getType());
 			carOverviewModel.addRow(rowData);
 		}
 	}
@@ -343,7 +370,7 @@ public class UI {
 	private void refreshCarSchedule(List<Car> tempCarList, Map<Car,Pump> tempSchedule) {
 		carScheduleModel.setRowCount(0);
 		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
-		Object[] rowData = new Object[4];
+		String[] rowData = new String[4];
 		
 		
 		Iterator it = tempSchedule.entrySet().iterator();
@@ -356,7 +383,7 @@ public class UI {
 			
 			rowData[0] = aCar.getId();
 			rowData[1] = aPump.getId();
-			rowData[2] = aCar.getCurrentCapacity();
+			rowData[2] = String.valueOf(aCar.getCurrentCapacity());
 			rowData[3] = format.format(calculateExpectedCompletionTime(aCar.getCurrentCapacity(), aCar.getMinChargeCapacity(), 
 					CarTypeTranslator.getCarFromType(aCar.getType())));
 			it.remove();
@@ -369,19 +396,25 @@ public class UI {
 		double remainingCharge = 0;
 		double hoursTillMin = 0;
 		double chargeRate = carSpec.getRateOfCharge();
+		Date estimatedCompletionTime = new Date();
 		
 		//need to account for when above min
 		remainingCharge = minCapacity - currentCapacity;
 		Date minRequiredTime = new Date();
 		
 		hoursTillMin = remainingCharge/chargeRate;
-		hoursTillMin = roundToHalf(hoursTillMin);
 		
-		Date estimatedCompletionTime = new Date(minRequiredTime.getTime() + ((long)hoursTillMin * HOUR));
+		estimatedCompletionTime = addHoursToJavaUtilDate(minRequiredTime, (Math.round(hoursTillMin * 2)/2.0));
 		return estimatedCompletionTime;
 	}
 	
-	private double roundToHalf(double unrounded) {
-		return Math.round(unrounded * 2)/2.0;
+	public Date addHoursToJavaUtilDate(Date date, double hours) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		int minutes;
+		minutes = (int) (hours * 60);
+		calendar.add(Calendar.MINUTE,minutes);
+		return calendar.getTime();
+		
 	}
 }

@@ -38,7 +38,7 @@ public class JadeController {
 	
 	public MsaAgentInterface createMsaAgent(int smallPumps, int mediumPumps, int largePumps) throws StaleProxyException{
 		AgentController agentController = _mainContainer
-				.createNewAgent("msa_agent", MsaAgent.class.getName(),new Object[] {smallPumps,mediumPumps,largePumps}); //TODO replace this with config values
+				.createNewAgent("msa_agent", MsaAgent.class.getName(),new Object[] {smallPumps,mediumPumps,largePumps});
 		
 		agentController.start();
 		return agentController.getO2AInterface(MsaAgentInterface.class);		

@@ -4,4 +4,4 @@ public enum CarType {
 	Small,
 	Medium,
 	Large
-	}
+}
