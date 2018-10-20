@@ -54,15 +54,13 @@ public class MsaAgent extends Agent {
 
 			@Override
 			protected void onTick() {
-				// Re-calculate priorities
+				// Re-calculate capacity
 				for(Car car: _cars) {
 					car.refresh();
 				}
 				
 				// Update schedule and notify
-				//_currentCarPump.clear();
-				//List<ACLMessage> result = CustomAlgorithm.process(_currentCarPump, _cars, _pumps);
-				//bulkInform(result);
+				List<ACLMessage> result = AgentHelper.generateSchedule(_cars, _pumps, _currentCarPump);
 			}
 		});
 	}

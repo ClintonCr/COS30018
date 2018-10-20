@@ -15,7 +15,8 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	
 	//Create car agent on init and then send message through to MSA 
 	
-	protected void setup() {		
+	protected void setup() {
+		// todo add receive message functionality (from MSA)
 		try {
 			_car = new Car(this.getName(), this.getArguments());
 			ACLMessage aMsg = new ACLMessage(ACLMessage.INFORM);
@@ -28,6 +29,7 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	}
 	
 	public void end() {
+		// TODO - on delete inform MSA
 		doDelete();
 	}
 	
