@@ -61,6 +61,7 @@ public class MsaAgent extends Agent {
 				
 				// Update schedule and notify
 				List<ACLMessage> result = AgentHelper.generateSchedule(_cars, _pumps, _currentCarPump);
+				bulkInform(result);
 			}
 		});
 	}
