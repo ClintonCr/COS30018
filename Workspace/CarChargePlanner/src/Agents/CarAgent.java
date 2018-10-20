@@ -31,8 +31,7 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	public void end() {
 		// TODO - on delete inform MSA
 		doDelete();
-	}
-	
+	}	
 	protected void takeDown() {
 		System.out.println("Car agent "+ getName() + " is terminating.");
 	}

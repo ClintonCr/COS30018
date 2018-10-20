@@ -1,10 +1,17 @@
 package Agents;
 
+import java.io.Console;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import Enums.CarType;
+import Enums.PumpType;
 import Helpers.AgentHelper;
 import Models.Car;
 import Models.Pump;
@@ -14,13 +21,14 @@ import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 
-public class MsaAgent extends Agent {
+public class MsaAgent extends Agent implements MsaAgentInterface {
 	// Fields
 	final private List<Car> _cars;
 	final private List<Pump> _pumps;
 	final private Map<Car,Pump> _currentCarPump;
 	
 	public MsaAgent(){
+		registerO2AInterface(MsaAgentInterface.class, this);
 		_cars = new ArrayList<>();
 		_pumps = new ArrayList<>();
 		_currentCarPump = new HashMap<>();
@@ -82,5 +90,13 @@ public class MsaAgent extends Agent {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public List<Car> getCars(){
+		return _cars;
+	}
+	
+	public Map<Car,Pump> getMap(){
+		return _currentCarPump;
 	}
 }
