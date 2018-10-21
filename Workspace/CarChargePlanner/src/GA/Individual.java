@@ -19,7 +19,7 @@ public class Individual {
 		Random r = new Random();
 		
 		for (Pump pump : pumps) {
-			int high = cars.size();
+			int high = tempCars.size();
 			
 			if (high <= 0) {
 				break;

@@ -3,6 +3,7 @@ package Helpers;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,13 +41,15 @@ public class AgentHelper {
 		 return batchResult;
 	}
 	
-	public static List<ACLMessage> generateSchedule(List<Car> cars, List<Pump> pumps, Map<Car,Pump> map){
+	public static Map<Car, Pump> generateSchedule(List<Car> cars, List<Pump> pumps){		
+		List<Car> tempCars = new ArrayList<>(cars);
+		Map<Car, Pump> tempMap = new HashMap<>();
 		GeneticAlgorithm algorithm = new GeneticAlgorithm();
 		
 		// Create temporary list of cars
-		List<Car> largeCars = getCarsByType(cars, CarType.Large);
-		List<Car> mediumCars = getCarsByType(cars, CarType.Medium);
-		List<Car> smallCars = getCarsByType(cars, CarType.Small);
+		List<Car> largeCars = getCarsByType(tempCars, CarType.Large);
+		List<Car> mediumCars = getCarsByType(tempCars, CarType.Medium);
+		List<Car> smallCars = getCarsByType(tempCars, CarType.Small);
 		
 		// Create temporary list of pumps
 		List<Pump> largePumps = getPumpsByType(pumps, PumpType.Large);
@@ -71,19 +74,60 @@ public class AgentHelper {
 		bulkUpdateCars(smallMap, smallCars);
 		
 		// Update map
-		map.clear();
-		map.putAll(largeMap);
-		map.putAll(mediumMap);
-		map.putAll(smallMap);
+		tempMap.clear();
+		tempMap.putAll(largeMap);
+		tempMap.putAll(mediumMap);
+		tempMap.putAll(smallMap);
 		
-		return getMessages(map, cars);
+		// Update cars
+		cars.clear();
+		cars.addAll(tempCars);
+		
+		return tempMap;
+	}
+	
+	// This needs to tell cars when they are done. Either finished, or canceled.
+	public static List<ACLMessage> getMessages(Map<Car, Pump> map, List<Car> cars) {
+		List<ACLMessage> result = new ArrayList<>();
+		List<Car> successfulCars = cars.stream()
+				.filter(car -> car.getCurrentCapacity() >= car.getMaxChargeCapacity())
+				.collect(Collectors.toList());
+		String output = "~~Agent helper message generator~~";
+		
+		// Remove cars that have completed requirements
+		for(Car successfulCar : successfulCars) {
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.addReceiver(new AID(successfulCar.getId(), AID.ISLOCALNAME));
+			msg.setContent("Requirements have been met for: " + successfulCar.getId());
+			result.add(msg);
+			output += System.lineSeparator() + "	Creating success message for " + successfulCar.getId() + ". Requirement was "+ successfulCar.getMinChargeCapacity() + " and final was " + successfulCar.getCurrentCapacity() + ".";
+			map.remove(successfulCar);
+			cars.remove(successfulCar);
+		}
+		
+		// Remove cars that we can't accommodate
+		for (Car car: cars) {
+			if (map.containsKey(car) == false) {
+				if (false) {//todo calculate if its possible to complete
+					//ACLMessage msg = new ACLMessage(ACLMessage.);
+					output += System.lineSeparator() + "	Creating failed message for " + car.getId() + ". Requirement was "+ car.getMinChargeCapacity() + " and final was " + car.getCurrentCapacity() + ".";
+					System.out.println("Removing Car " + car.getId() +" because we can't meet deadline.");
+				}
+			}
+		}
+		
+		if (output != "~~Agent helper message generator~~") {
+			System.out.println(output);			
+		}
+		
+		return result;
 	}
 	
 	private static List<Car> getCarsByType(List<Car> cars, CarType cartype){
-		return cars.stream()
-				.filter(car -> car.getCurrentCapacity() <= CarTypeTranslator.getCarFromType(car.getType()).getCapacity()) //remove cars that are finished
-				.filter(car -> car.getStartDate().before(new Date())) //remove when its before a cars start date
-				.filter(car -> car.getType() == cartype).collect(Collectors.toList()); //only add relevant car types
+		return new ArrayList<> (cars.stream()
+				.filter(car -> car.getCurrentCapacity() <= car.getMinChargeCapacity()) //remove cars that are finished
+				.filter(car -> car.getEarliestStartDate().before(new Date())) //remove when its before a cars start date
+				.filter(car -> car.getType() == cartype).collect(Collectors.toList())); //only add relevant car types
 	}
 	
 	private static List<Pump> getPumpsByType(List<Pump> pumps, PumpType pumpType){
@@ -105,7 +149,7 @@ public class AgentHelper {
 			Calendar projectedCompletion = Calendar.getInstance();
 			projectedCompletion.add(Calendar.MINUTE, (int) (hoursToComplete * 60));
 			
-			if (projectedCompletion.after(car.getEndDate())) {
+			if (projectedCompletion.after(car.getLatestFinishDate())) {
 				carsToRemove.add(car);
 			}
 		}
@@ -121,31 +165,5 @@ public class AgentHelper {
 			currentCar.setPump((Pump)kvp.getValue());
 			cars.remove(currentCar);
 		}
-	}
-	
-	// This needs to tell cars when they are done. Either finished, or canceled.
-	private static List<ACLMessage> getMessages(Map<Car, Pump> map, List<Car> cars) {
-		List<ACLMessage> result = new ArrayList<>();
-		List<Car> successfulCars = cars.stream()
-				.filter(car -> car.getCurrentCapacity() >= CarTypeTranslator.getCarFromType(car.getType()).getCapacity())
-				.collect(Collectors.toList());
-		
-		// Remove cars that have completed requirements
-		for(Car successfulCar : successfulCars) {
-			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-			msg.addReceiver(new AID(successfulCar.getId(), AID.ISLOCALNAME));
-			result.add(msg);
-			cars.remove(successfulCar);
-		}
-		
-		// Remove cars that we can't accommodate
-		for (Car car: cars) {
-			if (map.containsKey(car) == false) {
-				if (true) {//todo calculate if its possible to complete
-					//ACLMessage msg = new ACLMessage(ACLMessage.);
-				}
-			}
-		}
-		return result;
 	}
 }

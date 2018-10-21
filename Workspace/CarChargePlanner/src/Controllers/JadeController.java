@@ -48,10 +48,6 @@ public class JadeController {
 	
 	//todo - add a delete all car agent endpoint
 	
-	//todo - add a single car agent endpoint?
-	
-	//todo - manually trigger a MSA update...
-	
 	// Helpers
 	private static ContainerController createContainer(String name, boolean showGui, boolean isMainContainer) {
 		Runtime rt = Runtime.instance();

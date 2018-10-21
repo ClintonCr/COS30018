@@ -1,17 +1,10 @@
 package Agents;
 
-import java.io.Console;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-import Enums.CarType;
-import Enums.PumpType;
 import Helpers.AgentHelper;
 import Models.Car;
 import Models.Pump;
@@ -25,13 +18,13 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 	// Fields
 	final private List<Car> _cars;
 	final private List<Pump> _pumps;
-	final private Map<Car,Pump> _currentCarPump;
+	private Map<Car,Pump> _map;
 	
 	public MsaAgent(){
 		registerO2AInterface(MsaAgentInterface.class, this);
 		_cars = new ArrayList<>();
 		_pumps = new ArrayList<>();
-		_currentCarPump = new HashMap<>();
+		_map = new HashMap<>();
 	}
 	
 	protected void setup(){
@@ -68,7 +61,8 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 				}
 				
 				// Update schedule and notify
-				List<ACLMessage> result = AgentHelper.generateSchedule(_cars, _pumps, _currentCarPump);
+				_map = AgentHelper.generateSchedule(_cars, _pumps);
+				List<ACLMessage> result = AgentHelper.getMessages(_map, _cars);
 				bulkInform(result);
 			}
 		});
@@ -93,10 +87,10 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 	}
 	
 	public List<Car> getCars(){
-		return _cars;
+		return new ArrayList<>(_cars);
 	}
 	
 	public Map<Car,Pump> getMap(){
-		return _currentCarPump;
+		return new HashMap<>(_map);
 	}
 }
