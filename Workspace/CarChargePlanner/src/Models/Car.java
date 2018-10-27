@@ -22,7 +22,6 @@ public class Car implements Serializable{
 	final private Date _earliestStartDate;
 	final private Date _latestFinishDate;	
 	// Operating fields
-	private double _priority; //updated on refresh
 	private double _currentCapacity; //updated on refresh
 	private boolean _isConnected;
 	private PumpType _currentPumpType;
@@ -63,11 +62,13 @@ public class Car implements Serializable{
 		// Update priority
 		double remainingCharge = _maxChargeCapacity - _currentCapacity;
 		
-		//set isConnected as false and currentPumpType to null
+		// Remove current connection details (to be updated by MSA)
+		_isConnected = false;
+		_currentPumpType = null;
+		
 	}
 	
 	// Properties
-	public double getMinChargeCapacity() {return _minChargeCapacity;}
 	public double getMaxChargeCapacity() {return _maxChargeCapacity;}
 	public Date getEarliestStartDate() {return _earliestStartDate;}
 	public Date getLatestFinishDate() {return _latestFinishDate;}
@@ -76,4 +77,7 @@ public class Car implements Serializable{
 	public CarType getType() { return _carType; }
 	public double getCurrentCapacity() { return _currentCapacity; }
 	public boolean getIsConnected() { return _isConnected; }
+	public void setIsConnected() { _isConnected = true; }
+	public void setPump(Pump pump) { _currentPumpType = pump.getPumpType(); }
+	public double getMinChargeCapacity() { return _minChargeCapacity; }
 }

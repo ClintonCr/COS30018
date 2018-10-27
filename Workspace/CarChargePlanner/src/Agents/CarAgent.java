@@ -3,7 +3,9 @@ package Agents;
 import Models.Car;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 
 public class CarAgent extends Agent implements CarAgentInterface{
 	
@@ -15,9 +17,9 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	
 	//Create car agent on init and then send message through to MSA 
 	
-	protected void setup() {		
+	protected void setup() {
 		try {
-			_car = new Car(this.getName(), this.getArguments());
+			_car = new Car(this.getAID().getLocalName(), this.getArguments());
 			ACLMessage aMsg = new ACLMessage(ACLMessage.INFORM);
 			aMsg.setContentObject(_car);
 			aMsg.addReceiver(new AID("msa_agent",AID.ISLOCALNAME));
@@ -25,9 +27,25 @@ public class CarAgent extends Agent implements CarAgentInterface{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		addBehaviour(new CyclicBehaviour() { //todo get this messaging interactions up to FIPA standards..
+			@Override
+			public void action() {
+				ACLMessage msg = myAgent.receive();
+				
+				if (msg != null) {
+					System.out.println(msg.getContent());
+					doDelete();
+				} 
+				else {
+					block();
+				}
+			}
+		} );
 	}
 	
 	public void end() {
+		// TODO - on delete inform MSA
 		doDelete();
 	}	
 	protected void takeDown() {
