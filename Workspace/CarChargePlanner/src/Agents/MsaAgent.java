@@ -51,7 +51,7 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 				}
 			}
 		} );
-		addBehaviour(new TickerBehaviour(this, 30000) { // 30 seconds
+		addBehaviour(new TickerBehaviour(this, 5000) { // 30 seconds
 
 			@Override
 			protected void onTick() {

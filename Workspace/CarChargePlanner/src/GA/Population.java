@@ -25,4 +25,16 @@ public class Population {
 	public Individual testShit() {
 		return _individuals[1];
 	}
+	
+	public Individual getFittest() {
+		Individual fittest = _individuals[0];
+		for (int i = 1; i < _individuals.length; i++) {
+			
+			if (fittest.getFitness() < _individuals[i].getFitness()) {
+				fittest = _individuals[i];
+			}
+		}
+		
+		return fittest;
+	}
 }

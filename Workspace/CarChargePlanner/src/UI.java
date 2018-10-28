@@ -198,7 +198,7 @@ public class UI {
 			public void focusGained(FocusEvent fe) {
 				
 				if (txtStartTime.getText().equals("Enter Start Time")) {
-					txtStartTime.setText("");
+					txtStartTime.setText("28/10/2018 11:00");
 				}
 			}
 		});
@@ -226,7 +226,7 @@ public class UI {
 			public void focusGained(FocusEvent fe) {
 				
 				if (txtDeadlineTime.getText().equals("Enter Deadline")) {
-					txtDeadlineTime.setText("");
+					txtDeadlineTime.setText("28/10/2018 16:00");
 				}
 			}
 		});

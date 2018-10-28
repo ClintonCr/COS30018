@@ -14,8 +14,14 @@ public class GeneticAlgorithm {
 		Map<Car, Pump> result = new HashMap<Car, Pump>();
 		// Create population
 		Population population = new Population(cars, pumps, true);
-		Map<Car, Pump> asd = population.testShit().ATestGetterSHit();
-		result.putAll(asd);
+		
+		Map<Car, Pump> fittest = population.getFittest().getSchedule();
+		result.putAll(fittest);
 		return result;
 	}
 }
+
+//TO DO
+
+//Calculate fitness of individuals
+//
