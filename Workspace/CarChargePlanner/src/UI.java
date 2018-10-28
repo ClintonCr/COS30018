@@ -115,21 +115,21 @@ public class UI {
 		/// Add car controls
 		// Car Type
 		JLabel lblCartype = new JLabel("Car Type:");
-		lblCartype.setBounds(477, 232, 90, 16);
+		lblCartype.setBounds(507, 252, 90, 16);
 		_frame.getContentPane().add(lblCartype);
 		
 		JComboBox cmbCarType = new JComboBox();
-		cmbCarType.setBounds(571, 232, 90, 16);
+		cmbCarType.setBounds(621, 252, 110, 16);
 		cmbCarType.setModel(new DefaultComboBoxModel<>(CarType.values()));
 		_frame.getContentPane().add(cmbCarType);
 		
 		// Minimum Expected Charge		
 		JLabel lblMinCharge = new JLabel("Minimum Charge");
-		lblMinCharge.setBounds(477, 262, 90, 16);
+		lblMinCharge.setBounds(507, 282, 110, 16);
 		_frame.getContentPane().add(lblMinCharge);
 		
 		JTextField txtMinCharge = new JTextField("Min Charge");
-		txtMinCharge.setBounds(571, 262,  90,  16);
+		txtMinCharge.setBounds(621, 282, 110, 16);
 		txtMinCharge.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -152,11 +152,11 @@ public class UI {
 		
 		// Maximum Expected Charge		
 		JLabel lblMaxCharge = new JLabel("Maximum Charge");
-		lblMaxCharge.setBounds(477, 292, 90, 16);
+		lblMaxCharge.setBounds(507, 312, 110, 16);
 		_frame.getContentPane().add(lblMaxCharge);
 		
 		JTextField txtMaxCharge = new JTextField("Max Charge");
-		txtMaxCharge.setBounds(571, 292,  90,  16);
+		txtMaxCharge.setBounds(621, 312, 110, 16);
 		txtMaxCharge.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -179,11 +179,11 @@ public class UI {
 		
 		// Start Time		
 		JLabel lblStartTime = new JLabel("Start Time");
-		lblStartTime.setBounds(477, 322, 90, 16);
+		lblStartTime.setBounds(507, 342, 90, 16);
 		_frame.getContentPane().add(lblStartTime);
 		
 		JTextField txtStartTime = new JTextField("Enter Start Time");
-		txtStartTime.setBounds(571, 322,  90,  16);
+		txtStartTime.setBounds(621, 342, 110, 16);
 		txtStartTime.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -206,11 +206,11 @@ public class UI {
 		
 		// Deadline		
 		JLabel lblDeadlineTime = new JLabel("Deadline");
-		lblDeadlineTime.setBounds(477, 352, 90, 16);
+		lblDeadlineTime.setBounds(507, 372, 90, 16);
 		_frame.getContentPane().add(lblDeadlineTime);
 		
 		JTextField txtDeadlineTime = new JTextField("Enter Deadline");
-		txtDeadlineTime.setBounds(571, 352,  90,  16);
+		txtDeadlineTime.setBounds(621, 372, 110, 16);
 		txtDeadlineTime.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -233,7 +233,7 @@ public class UI {
 		
 		// Add Agent Button		
 		JButton btnAddButton = new JButton("Add Car");
-		btnAddButton.setBounds(524, 377, 90, 28);
+		btnAddButton.setBounds(524, 427, 150, 28);
 		_frame.getContentPane().add(btnAddButton);
 		btnAddButton.addActionListener(new ActionListener() {
 			
