@@ -5,7 +5,6 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
 
 public class CarAgent extends Agent implements CarAgentInterface{
 	
@@ -20,10 +19,10 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	protected void setup() {
 		try {
 			_car = new Car(this.getAID().getLocalName(), this.getArguments());
-			ACLMessage aMsg = new ACLMessage(ACLMessage.INFORM);
-			aMsg.setContentObject(_car);
-			aMsg.addReceiver(new AID("msa_agent",AID.ISLOCALNAME));
-			send(aMsg);
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.setContentObject(_car);
+			msg.addReceiver(new AID("msa_agent",AID.ISLOCALNAME));
+			send(msg);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -35,6 +34,10 @@ public class CarAgent extends Agent implements CarAgentInterface{
 				
 				if (msg != null) {
 					System.out.println(msg.getContent());
+					
+					if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+						return;
+					}
 					doDelete();
 				} 
 				else {

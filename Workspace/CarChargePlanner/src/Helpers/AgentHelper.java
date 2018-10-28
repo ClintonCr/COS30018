@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import Enums.CarType;
@@ -111,7 +110,6 @@ public class AgentHelper {
 				if (false) {//todo calculate if its possible to complete
 					//ACLMessage msg = new ACLMessage(ACLMessage.);
 					output += System.lineSeparator() + "	Creating failed message for " + car.getId() + ". Requirement was "+ car.getMinChargeCapacity() + " and final was " + car.getCurrentCapacity() + ".";
-					System.out.println("Removing Car " + car.getId() +" because we can't meet deadline.");
 				}
 			}
 		}
