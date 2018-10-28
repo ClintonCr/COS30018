@@ -1,7 +1,6 @@
 package GA;
 
 import java.util.List;
-import java.util.Map;
 
 import Models.Car;
 import Models.Pump;

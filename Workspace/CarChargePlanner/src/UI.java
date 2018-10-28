@@ -1,4 +1,5 @@
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -9,13 +10,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 import javax.swing.JFrame;
 
@@ -44,6 +45,7 @@ public class UI {
 	private JadeController _jadeController;
 	private MsaAgentInterface _msaAgent;
 	private List<CarAgentInterface> _carAgents;
+	private List<Pump> _pumps;
 	final private JTable _carOverviewTable;
 	private Properties _properties = new Properties();
 	private DefaultTableModel _carOverviewModel = new DefaultTableModel();
@@ -104,30 +106,30 @@ public class UI {
 	 * Initialize the contents of the _frame.
 	 */
 	private void initialize() {
-		_frame.setBounds(100, 100, 600, 450);
+		/// Add frame
+		_frame.setBounds(0, 0, 800, 950);
 		_frame.setResizable(false);
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		_frame.getContentPane().setLayout(null);
 		
-		//Car Type
+		/// Add car controls
+		// Car Type
+		JLabel lblCartype = new JLabel("Car Type:");
+		lblCartype.setBounds(507, 252, 90, 16);
+		_frame.getContentPane().add(lblCartype);
 		
 		JComboBox cmbCarType = new JComboBox();
-		cmbCarType.setBounds(471, 232, 90, 16);
+		cmbCarType.setBounds(621, 252, 110, 16);
 		cmbCarType.setModel(new DefaultComboBoxModel<>(CarType.values()));
 		_frame.getContentPane().add(cmbCarType);
 		
-		JLabel lblChargetype = new JLabel("Car Type:");
-		lblChargetype.setBounds(377, 232, 90, 16);
-		_frame.getContentPane().add(lblChargetype);
-		
-		//Minimum Expected Charge
-		
+		// Minimum Expected Charge		
 		JLabel lblMinCharge = new JLabel("Minimum Charge");
-		lblMinCharge.setBounds(377, 262, 90, 16);
+		lblMinCharge.setBounds(507, 282, 110, 16);
 		_frame.getContentPane().add(lblMinCharge);
 		
 		JTextField txtMinCharge = new JTextField("Min Charge");
-		txtMinCharge.setBounds(471, 262,  90,  16);
+		txtMinCharge.setBounds(621, 282, 110, 16);
 		txtMinCharge.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -148,17 +150,16 @@ public class UI {
 		});
 		_frame.getContentPane().add(txtMinCharge);
 		
-		//Maximum Expected Charge
-		
+		// Maximum Expected Charge		
 		JLabel lblMaxCharge = new JLabel("Maximum Charge");
-		lblMaxCharge.setBounds(377, 292, 90, 16);
+		lblMaxCharge.setBounds(507, 312, 110, 16);
 		_frame.getContentPane().add(lblMaxCharge);
 		
 		JTextField txtMaxCharge = new JTextField("Max Charge");
-		txtMaxCharge.setBounds(471, 292,  90,  16);
+		txtMaxCharge.setBounds(621, 312, 110, 16);
 		txtMaxCharge.addFocusListener(new FocusListener() {
 			
-			@Override //Refactor focus listeners into one.
+			@Override
 			public void focusLost(FocusEvent fe) {
 				
 				if(txtMaxCharge.getText().isEmpty()) {
@@ -176,14 +177,13 @@ public class UI {
 		});
 		_frame.getContentPane().add(txtMaxCharge);
 		
-		//Start Time
-		
+		// Start Time		
 		JLabel lblStartTime = new JLabel("Start Time");
-		lblStartTime.setBounds(377, 322, 90, 16);
+		lblStartTime.setBounds(507, 342, 90, 16);
 		_frame.getContentPane().add(lblStartTime);
 		
 		JTextField txtStartTime = new JTextField("Enter Start Time");
-		txtStartTime.setBounds(471, 322,  90,  16);
+		txtStartTime.setBounds(621, 342, 110, 16);
 		txtStartTime.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -204,14 +204,13 @@ public class UI {
 		});
 		_frame.getContentPane().add(txtStartTime);
 		
-		//Deadline
-		
+		// Deadline		
 		JLabel lblDeadlineTime = new JLabel("Deadline");
-		lblDeadlineTime.setBounds(377, 352, 90, 16);
+		lblDeadlineTime.setBounds(507, 372, 90, 16);
 		_frame.getContentPane().add(lblDeadlineTime);
 		
 		JTextField txtDeadlineTime = new JTextField("Enter Deadline");
-		txtDeadlineTime.setBounds(471, 352,  90,  16);
+		txtDeadlineTime.setBounds(621, 372, 110, 16);
 		txtDeadlineTime.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -232,14 +231,45 @@ public class UI {
 		});
 		_frame.getContentPane().add(txtDeadlineTime);
 		
-		//Add Agent Button		
-		
+		// Add Agent Button		
 		JButton btnAddButton = new JButton("Add Car");
-		btnAddButton.setBounds(424, 377, 90, 28);
+		btnAddButton.setBounds(524, 427, 150, 28);
 		_frame.getContentPane().add(btnAddButton);
-		
-		//Add Agent table
+		btnAddButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				CarType carType;
+				boolean validDeadline;
+				boolean validStartTime;
+				double minChargeCapacity, maxChargeCapacity;
+				String earliestStartTime, deadline ;
+				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+				
+				try {					
+					carType = (CarType)cmbCarType.getSelectedItem();
+					minChargeCapacity = Double.valueOf(txtMinCharge.getText());
+					maxChargeCapacity = Double.valueOf(txtMaxCharge.getText());
+					
+					earliestStartTime = txtStartTime.getText();
+					deadline = txtDeadlineTime.getText();
+					
+					validStartTime = isThisDateValid(earliestStartTime, format);
+					validDeadline = isThisDateValid(deadline, format);
 
+					if (!(validStartTime || validDeadline)) {
+						System.out.println("Invalid Date");
+						return;
+					}
+					createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
+				}
+				catch (Exception exception) {
+					System.out.println("Parsing error.");
+				}
+			}
+		});
+		
+		/// Car Agent table		
 		String[] columnNames = new String[7];
 		columnNames[0] = "Agent Id";
 		columnNames[1] = "Min Expected Charge";
@@ -253,33 +283,96 @@ public class UI {
 		_carOverviewTable.setModel(_carOverviewModel);
 		
 		JScrollPane scrollTableOverview = new JScrollPane(_carOverviewTable);
-		scrollTableOverview.setBounds(10,10,551,211);
+		scrollTableOverview.setBounds(10,10,765,211);
 		scrollTableOverview.setVisible(true);
 		
 		_frame.getContentPane().add(scrollTableOverview);
 		
-		//Add in schedule table
-		
+		/// Schedule table
+		JLabel lblScheduleTable = new JLabel("Current Schedule");
+		lblScheduleTable.setBounds(10,-20,450,543);
+		lblScheduleTable.setFont(new Font("asd",Font.PLAIN, 30));
+		_frame.getContentPane().add(lblScheduleTable);
 		JScrollPane scrollTableSchedule = new JScrollPane(_carScheduleTable);
 		
 		String[] scheduleColumnNames = new String[4];
-		scheduleColumnNames[0] = "Car Id";
-		scheduleColumnNames[1] = "Pump Id";
+		scheduleColumnNames[0] = "Pump Id";
+		scheduleColumnNames[1] = "Car Id";
 		scheduleColumnNames[2] = "Current Charge";
 		scheduleColumnNames[3] = "Projected Finish Time";
 		
 		_carScheduleModel.setColumnIdentifiers(scheduleColumnNames);
 		_carScheduleTable.setModel(_carScheduleModel);
 		
-		scrollTableSchedule.setBounds(10,233,355,135);
+		scrollTableSchedule.setBounds(10,283,450,543);
 		scrollTableSchedule.setVisible(true);
 		
 		_frame.getContentPane().add(scrollTableSchedule);
 		
+		// Preset Configurations Button
+		JButton btnConfig1 = new JButton("Configuration 1");
+		btnConfig1.setBounds(524, 590, 150, 28);
+		_frame.getContentPane().add(btnConfig1);
+		btnConfig1.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+				Calendar deadline = Calendar.getInstance();
+				deadline.add(Calendar.HOUR, 12);
+				
+				// Add small cars
+				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				// Add medium cars
+				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				// Add large cars
+				createBatchCars(20, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+			}
+		});
+		JButton btnConfig2 = new JButton("Configuration 2");
+		btnConfig2.setBounds(524, 690, 150, 28);
+		_frame.getContentPane().add(btnConfig2);
+		btnConfig2.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+				Calendar deadline = Calendar.getInstance();
+				deadline.add(Calendar.HOUR, 12);
+				
+				// Add small cars
+				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				// Add medium cars
+				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				// Add large cars
+				createBatchCars(20, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+			}
+		});
+		JButton btnConfig3 = new JButton("Configuration 3");
+		btnConfig3.setBounds(524, 790, 150, 28);
+		_frame.getContentPane().add(btnConfig3);
+		btnConfig3.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+				Calendar deadline = Calendar.getInstance();
+				deadline.add(Calendar.HOUR, 12);
+				
+				// Add small cars
+				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				// Add medium cars
+				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				// Add large cars
+				createBatchCars(20, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+			}
+		});
+		
+		// Dashboard timer		
 		TimerTask aTask = new TimerTask() {
 			
 			@Override
-			public void run() {
+			public void run() {				
 				Map<Car,Pump> tempSchedule = _msaAgent.getMap();
 				List<Car> tempCarList = _msaAgent.getCars();
 				refreshCarOverviewTable(tempCarList);
@@ -287,37 +380,15 @@ public class UI {
 			}
 		};
 		_aTimer.scheduleAtFixedRate(aTask, 0, 5000);
-		
-		btnAddButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				CarType carType;
-				boolean validDeadline;
-				boolean validStartTime;
-				double minChargeCapacity, maxChargeCapacity;
-				String earliestStartTime, deadline ;
-				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
-				
-				carType = (CarType)cmbCarType.getSelectedItem();
-				minChargeCapacity = Double.valueOf(txtMinCharge.getText());
-				maxChargeCapacity = Double.valueOf(txtMaxCharge.getText());
-				
-				earliestStartTime = txtStartTime.getText();
-				deadline = txtDeadlineTime.getText();
-				
-				validStartTime = isThisDateValid(earliestStartTime, format);
-				validDeadline = isThisDateValid(deadline, format);
-
-				if (!(validStartTime || validDeadline)) {
-					System.out.println("Invalid Date");
-				}
-				createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
-			}
-		});
 	}
 	
-	public boolean isThisDateValid(String dateToValidate, SimpleDateFormat sdf) {
+	private void createBatchCars(int amount, CarType carType, double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
+		for (int i = 0; i<amount; i++) {
+			createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
+		}
+	}
+	
+	private boolean isThisDateValid(String dateToValidate, SimpleDateFormat sdf) {
 		
 		if(dateToValidate == null) {
 			return false;
@@ -356,37 +427,39 @@ public class UI {
 		
 		for (int i = 0; i < tempCarList.size(); i++) {
 			rowData[0] = tempCarList.get(i).getId();
-			rowData[1] = String.valueOf(tempCarList.get(i).getMinChargeCapacity());
-			rowData[2] = String.valueOf(tempCarList.get(i).getMaxChargeCapacity());
+			rowData[1] = String.valueOf(tempCarList.get(i).getMinChargeCapacity()) + "kW";
+			rowData[2] = String.valueOf(tempCarList.get(i).getMaxChargeCapacity()) + "kW";
 			rowData[3] = format.format(tempCarList.get(i).getEarliestStartDate());
 			rowData[4] = format.format(tempCarList.get(i).getLatestFinishDate());
-			rowData[5] = String.valueOf(tempCarList.get(i).getCurrentCapacity());
+			rowData[5] = String.valueOf(tempCarList.get(i).getCurrentCapacity()) + "kW";
 			rowData[6] = String.valueOf(tempCarList.get(i).getType());
 			_carOverviewModel.addRow(rowData);
 		}
 	}
 	
 	private void refreshCarSchedule(List<Car> tempCarList, Map<Car,Pump> tempSchedule) {
+		if (_pumps == null || _pumps.isEmpty()) {
+			_pumps = tempSchedule.values()
+			.stream()
+			.sorted((base,target) -> base.getId().compareTo(target.getId()))
+			.collect(Collectors.toList());
+		}
+		
 		_carScheduleModel.setRowCount(0);
 		DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 		String[] rowData = new String[4];
-		
-		
-		Iterator it = tempSchedule.entrySet().iterator();
-		while(it.hasNext()) {
+		for (Pump pump : _pumps) {
+			Car connectedCar = tempSchedule.entrySet().stream()
+					.filter(kvp -> kvp.getValue().equals(pump))
+					.findFirst()
+					.map(m->m.getKey())
+					.orElse(null);
 			
-			Map.Entry aPair = (Map.Entry)it.next(); 
-			
-			Car aCar = (Car)aPair.getKey();
-			Pump aPump = (Pump)aPair.getValue();
-			
-			rowData[0] = aCar.getId();
-			rowData[1] = aPump.getId();
-			rowData[2] = String.valueOf(aCar.getCurrentCapacity());
-			rowData[3] = format.format(calculateExpectedCompletionTime(aCar.getCurrentCapacity(), aCar.getMinChargeCapacity(), 
-					CarTypeTranslator.getCarFromType(aCar.getType())));
-			it.remove();
-
+			rowData[0] = pump.getId();
+			rowData[1] = connectedCar.getId();
+			rowData[2] = String.valueOf(connectedCar.getCurrentCapacity()) + "kW";
+			rowData[3] = format.format(calculateExpectedCompletionTime(connectedCar.getCurrentCapacity(), connectedCar.getMinChargeCapacity(), 
+					CarTypeTranslator.getCarFromType(connectedCar.getType())));
 			_carScheduleModel.addRow(rowData);
 		}
 	}
