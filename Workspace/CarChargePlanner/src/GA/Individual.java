@@ -18,6 +18,11 @@ public class Individual {
 	private Map<Car, Pump> _map;
 	private int _fitness;
 	
+	public void generateIndividual(Map<Car, Pump> map) {
+		_map = map;
+		_fitness = calculateFitness(_map);
+	}
+	
 	public void generateIndividual(List<Car> cars, List<Pump> pumps) {
 		_map = new HashMap<>();
 		List<Car> tempCars = new ArrayList<>(cars);
@@ -73,7 +78,7 @@ public class Individual {
 		hoursTillMin = remainingCharge/chargeRate;
 		
 		estimatedCompletionTime = addHoursToJavaUtilDate(minRequiredTime, (Math.round(hoursTillMin * 2)/2.0));
-		return (int)differenceBetweenDatesInMinutes(car.getLatestFinishDate(),estimatedCompletionTime);
+		return Math.abs((int)differenceBetweenDatesInMinutes(car.getLatestFinishDate(),estimatedCompletionTime));
 	}
 	
 	private Date addHoursToJavaUtilDate(Date date, double hours) {

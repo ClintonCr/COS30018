@@ -1,5 +1,6 @@
 package Helpers;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import CSP.CSP;
 import Enums.CarType;
 import Enums.PumpType;
 import GA.GeneticAlgorithm;
@@ -42,11 +44,10 @@ public class AgentHelper {
 	
 	public static Map<Car, Pump> generateSchedule(List<Car> cars, List<Pump> pumps){
 		
-		
-		//bkbkb
 		List<Car> tempCars = new ArrayList<>(cars);
 		Map<Car, Pump> tempMap = new HashMap<>();
 		GeneticAlgorithm algorithm = new GeneticAlgorithm();
+		CSP csp = new CSP();
 		
 		// Create temporary list of cars
 		List<Car> largeCars = getCarsByType(tempCars, CarType.Large);
@@ -60,26 +61,32 @@ public class AgentHelper {
 		
 		// Trigger algorithm for large pump
 		removeImpossibleCarsForAlgo(largeCars, PumpType.Large); // filter out cars that we can accommodate
-		Map<Car, Pump> largeMap = algorithm.process(largeCars, largePumps, PumpType.Large);
+		Map<Car, Pump> largeMapCSP = csp.process(largeCars, largePumps);
+		Map<Car, Pump> largeMapGA = algorithm.process(largeCars, largePumps, PumpType.Large);
+		Map<Car, Pump> largeMap = getBest(largeMapCSP, largeMapGA);
 		bulkUpdateCars(largeMap, largeCars);
 		
 		// Trigger algorithm for medium pump
 		mediumCars.addAll(largeCars);
 		removeImpossibleCarsForAlgo(mediumCars, PumpType.Medium);
-		Map<Car, Pump> mediumMap = algorithm.process(mediumCars, mediumPumps, PumpType.Medium);
+		Map<Car, Pump> mediumMapCSP = csp.process(mediumCars, mediumPumps);
+		Map<Car, Pump> mediumMapGA = algorithm.process(mediumCars, mediumPumps, PumpType.Medium);
+		Map<Car, Pump> mediumMap = getBest(mediumMapCSP, mediumMapGA);
 		bulkUpdateCars(mediumMap, mediumCars);
 		
 		// Trigger algorithm for small pump
 		smallCars.addAll(mediumCars);
 		removeImpossibleCarsForAlgo(smallCars, PumpType.Small);
-		Map<Car, Pump> smallMap = algorithm.process(smallCars, smallPumps, PumpType.Small);
+		Map<Car, Pump> smallMapCSP = csp.process(smallCars, smallPumps);
+		Map<Car, Pump> smallMapGA = algorithm.process(smallCars, smallPumps, PumpType.Small);
+		Map<Car, Pump> smallMap = getBest(smallMapCSP, smallMapGA);
 		bulkUpdateCars(smallMap, smallCars);
 		
 		// Update map
 		tempMap.clear();
-		tempMap.putAll(largeMap);
-		tempMap.putAll(mediumMap);
-		tempMap.putAll(smallMap);
+		tempMap.putAll(largeMapCSP);
+		tempMap.putAll(mediumMapCSP);
+		tempMap.putAll(smallMapCSP);
 		
 		// Update cars
 		cars.clear();
@@ -166,5 +173,66 @@ public class AgentHelper {
 			currentCar.setPump((Pump)kvp.getValue());
 			cars.remove(currentCar);
 		}
+	}
+	
+	private static Map<Car, Pump> getBest(Map<Car, Pump> mapLeft, Map<Car,Pump> mapRight){
+		int fitnessLeft = calculateFitness(mapLeft);
+		int fitnessRight = calculateFitness(mapRight);
+		
+		if (fitnessLeft > fitnessRight) {
+			return mapLeft;
+		}
+		
+		return mapRight;
+	}
+	
+	private static int calculateFitness(Map<Car,Pump> map) {
+		int fitness = 0;
+		
+		Iterator it = map.entrySet().iterator();
+		while(it.hasNext()) {
+			
+			Map.Entry aPair = (Map.Entry)it.next(); 
+			
+			Car car = (Car)aPair.getKey();
+			Pump pump = (Pump)aPair.getValue();
+			
+			fitness += totalDeadlineTimeBuffer(car, pump);
+		}
+		
+		return fitness;
+	}
+	
+	/*
+	 * Deadline Time Buffer is defined as the sum of:
+	 * Deadline - Projected finished time in minutes for each car in schedule.  
+	 */
+	private static int totalDeadlineTimeBuffer(Car car, Pump pump) {
+		double remainingCharge = 0;
+		double hoursTillMin = 0;
+		double chargeRate = PumpTypeTranslator.getPumpFromType(pump.getPumpType()).getOutputChargeRate();
+		Date estimatedCompletionTime = new Date();
+		
+		//need to account for when above min
+		remainingCharge = car.getMaxChargeCapacity() - car.getCurrentCapacity();
+		Date minRequiredTime = new Date();
+		
+		hoursTillMin = remainingCharge/chargeRate;
+		
+		estimatedCompletionTime = addHoursToJavaUtilDate(minRequiredTime, (Math.round(hoursTillMin * 2)/2.0));
+		return Math.abs((int)differenceBetweenDatesInMinutes(car.getLatestFinishDate(),estimatedCompletionTime));
+	}
+	
+	private static Date addHoursToJavaUtilDate(Date date, double hours) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		int minutes;
+		minutes = (int) (hours * 60);
+		calendar.add(Calendar.MINUTE,minutes);
+		return calendar.getTime();
+	}
+	
+	private static long differenceBetweenDatesInMinutes(Date upper, Date lower) {
+		return ChronoUnit.MINUTES.between(upper.toInstant(), lower.toInstant()); 
 	}
 }
