@@ -41,6 +41,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 public class UI {
+	// ******************************
+	// Fields
+	// ******************************
 	private JFrame _frame;
 	private JadeController _jadeController;
 	private MsaAgentInterface _msaAgent;
@@ -53,6 +56,9 @@ public class UI {
 	final private JTable _carScheduleTable;
 	private DefaultTableModel _carScheduleModel = new DefaultTableModel();
 	
+	// ******************************
+	// Public methods
+	// ******************************
 	/**
 	 * Launch the application.
 	 */
@@ -118,7 +124,7 @@ public class UI {
 		lblCartype.setBounds(507, 252, 90, 16);
 		_frame.getContentPane().add(lblCartype);
 		
-		JComboBox cmbCarType = new JComboBox();
+		JComboBox<CarType> cmbCarType = new JComboBox<CarType>();
 		cmbCarType.setBounds(621, 252, 110, 16);
 		cmbCarType.setModel(new DefaultComboBoxModel<>(CarType.values()));
 		_frame.getContentPane().add(cmbCarType);
@@ -197,8 +203,9 @@ public class UI {
 			@Override
 			public void focusGained(FocusEvent fe) {
 				
+				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				if (txtStartTime.getText().equals("Enter Start Time")) {
-					txtStartTime.setText("28/10/2018 11:00");
+					txtStartTime.setText(format.format(Calendar.getInstance().getTime()));
 				}
 			}
 		});
@@ -224,8 +231,11 @@ public class UI {
 			@Override
 			public void focusGained(FocusEvent fe) {
 				
+				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				if (txtDeadlineTime.getText().equals("Enter Deadline")) {
-					txtDeadlineTime.setText("28/10/2018 16:00");
+					Calendar cal = Calendar.getInstance();
+					cal.add(Calendar.HOUR, 24);
+					txtDeadlineTime.setText(format.format(cal.getTime()));
 				}
 			}
 		});
@@ -357,10 +367,10 @@ public class UI {
 			public void actionPerformed(ActionEvent e) {
 				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				Calendar deadline = Calendar.getInstance();
-				deadline.add(Calendar.HOUR, 24);
+				deadline.add(Calendar.HOUR, 48);
 				
 				// Add small cars
-				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				createBatchCars(20, CarType.Small, 1, 12, df.format(new Date()), df.format(deadline.getTime()));
 				// Add medium cars
 				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
 				// Add large cars
@@ -379,30 +389,19 @@ public class UI {
 				refreshCarSchedule(tempCarList, tempSchedule);
 			}
 		};
-		_aTimer.scheduleAtFixedRate(aTask, 0, 30000);
+		_aTimer.scheduleAtFixedRate(aTask, 0, 5000);
 	}
 	
+	// ******************************
+	// Private methods
+	// ******************************
+	/// Jade Interaction Helpers
 	private void createBatchCars(int amount, CarType carType, double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
-		for (int i = 0; i<amount; i++) {
+		for (int i = 0; i < amount; i++) {
+			minChargeCapacity += 2;
+			maxChargeCapacity += 2;
 			createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
 		}
-	}
-	
-	private boolean isThisDateValid(String dateToValidate, SimpleDateFormat sdf) {
-		
-		if(dateToValidate == null) {
-			return false;
-		}
-		
-		sdf.setLenient(false);
-		
-		try {
-			Date date = sdf.parse(dateToValidate);
-		} catch(Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
 	}
 	
 	private void createAgent(CarType carType,double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
@@ -419,6 +418,7 @@ public class UI {
 		_msaAgent = _jadeController.createMsaAgent(smallPumps, mediumPumps, largePumps);
 	}
 	
+	/// Dash-board Update Methods
 	private void refreshCarOverviewTable(List<Car> tempCarList) {
 		_carOverviewModel.setRowCount(0);
 		
@@ -441,6 +441,7 @@ public class UI {
 		if (_pumps == null || _pumps.isEmpty()) {
 			_pumps = tempSchedule.values()
 			.stream()
+			.distinct()
 			.sorted((base,target) -> base.getId().compareTo(target.getId()))
 			.collect(Collectors.toList());
 		}
@@ -456,7 +457,7 @@ public class UI {
 					.orElse(null);
 			
 			if (connectedCar ==null) {
-				return;
+				continue;
 			}
 			
 			rowData[0] = pump.getId();
@@ -483,8 +484,26 @@ public class UI {
 		estimatedCompletionTime = addHoursToJavaUtilDate(minRequiredTime, (Math.round(hoursTillMin * 2)/2.0));
 		return estimatedCompletionTime;
 	}
+
+	/// Date Handling Helpers
+	private boolean isThisDateValid(String dateToValidate, SimpleDateFormat sdf) {
+		
+		if(dateToValidate == null) {
+			return false;
+		}
+		
+		sdf.setLenient(false);
+		
+		try {
+			Date date = sdf.parse(dateToValidate);
+		} catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 	
-	public Date addHoursToJavaUtilDate(Date date, double hours) {
+	private Date addHoursToJavaUtilDate(Date date, double hours) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
 		int minutes;

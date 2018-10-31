@@ -7,15 +7,21 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
 public class CarAgent extends Agent implements CarAgentInterface{
-	
+	// ******************************
+	// Fields
+	// ******************************
 	private Car _car;
 	
+	// ******************************
+	// Constructors
+	// ******************************
 	public CarAgent() {
 		registerO2AInterface(CarAgentInterface.class, this);
 	}
 	
-	//Create car agent on init and then send message through to MSA 
-	
+	// ******************************
+	// Public  methods
+	// ******************************
 	protected void setup() {
 		try {
 			_car = new Car(this.getAID().getLocalName(), this.getArguments());
@@ -27,14 +33,12 @@ public class CarAgent extends Agent implements CarAgentInterface{
 			e.printStackTrace();
 		}
 		
-		addBehaviour(new CyclicBehaviour() { //todo get this messaging interactions up to FIPA standards..
+		addBehaviour(new CyclicBehaviour() {
 			@Override
 			public void action() {
 				ACLMessage msg = myAgent.receive();
 				
 				if (msg != null) {
-					System.out.println(msg.getContent());
-					
 					if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
 						return;
 					}
@@ -48,7 +52,6 @@ public class CarAgent extends Agent implements CarAgentInterface{
 	}
 	
 	public void end() {
-		// TODO - on delete inform MSA
 		doDelete();
 	}	
 	protected void takeDown() {

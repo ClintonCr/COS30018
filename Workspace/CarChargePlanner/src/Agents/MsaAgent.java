@@ -2,7 +2,9 @@ package Agents;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -23,13 +25,18 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 
 public class MsaAgent extends Agent implements MsaAgentInterface {
+	// ******************************
 	// Fields
+	// ******************************
 	final private List<Car> _cars;
-	final private List<Pump> _pumps;
+	private List<Pump> _pumps;
 	private Map<Car,Pump> _map;
 	private Map<Integer, String> _logHistory;
 	private int _currentLogId;
 	
+	// ******************************
+	// Constructors
+	// ******************************
 	public MsaAgent(){
 		registerO2AInterface(MsaAgentInterface.class, this);
 		_cars = new ArrayList<>();
@@ -38,12 +45,25 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 		_logHistory = new HashMap<>();
 		_currentLogId = 0;
 	}
+	// ******************************
+	// Properties
+	// ******************************
+	public List<Car> getCars(){
+		return new ArrayList<>(_cars);
+	}
 	
+	public Map<Car,Pump> getMap(){
+		return new HashMap<>(_map);
+	}
+	
+	// ******************************
+	// Public methods
+	// ******************************
 	protected void setup(){
 		Object[] args =  getArguments();
 		
 		// Instantiate pumps
-		_pumps.addAll(AgentHelper.generatePumps((int)args[0], (int)args[1], (int)args[2]));
+		_pumps = Collections.unmodifiableList(AgentHelper.generatePumps((int)args[0], (int)args[1], (int)args[2]));
 		
 		// Read in message
 		addBehaviour(new CyclicBehaviour() {
@@ -78,7 +98,7 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 				}
 			}
 		} );
-		addBehaviour(new TickerBehaviour(this, 30000) { // 30 seconds
+		addBehaviour(new TickerBehaviour(this, 5000) { // 5 seconds
 			
 			@Override
 			protected void onTick() {
@@ -104,9 +124,20 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 	}
 	
 	protected void takeDown() {
+		System.out.println("~~~~~~~~~~~START MESSAGE LOG~~~~~~~~~~~");
+		Iterator it = _logHistory.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry)it.next();
+			System.out.println(pair.getKey() + ": " + pair.getValue());
+			it.remove();
+		}
+		System.out.println("~~~~~~~~~~~END MESSAGE LOG~~~~~~~~~~~");
 		System.out.println("MSA agent " + getName() + " is terminating.");
 	}
 	
+	// ******************************
+	// Private methods
+	// ******************************
 	private void bulkInform(List<ACLMessage> messages) {
 		try {
 			for(ACLMessage message : messages) {
@@ -148,16 +179,7 @@ public class MsaAgent extends Agent implements MsaAgentInterface {
 		}
 		else {
 			log += ": Added car " + car.getId();
-		} 
-		System.out.println(log);
+		}
 		_logHistory.put(_currentLogId++, log);
-	}
-	
-	public List<Car> getCars(){
-		return new ArrayList<>(_cars);
-	}
-	
-	public Map<Car,Pump> getMap(){
-		return new HashMap<>(_map);
 	}
 }

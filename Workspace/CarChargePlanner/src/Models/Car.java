@@ -14,7 +14,9 @@ import Helpers.PumpSpecification;
 import Helpers.PumpTypeTranslator;
 
 public class Car implements Serializable{
+	// ******************************
 	// Fields
+	// ******************************
 	final private String _uniqueAgentName;
 	final private CarType _carType;
 	final private double _minChargeCapacity;
@@ -26,7 +28,9 @@ public class Car implements Serializable{
 	private boolean _isConnected;
 	private PumpType _currentPumpType;
 	
+	// ******************************
 	// Constructors
+	// ******************************
 	public Car(String uniqueAgentName, CarType carType, double minChargeCapacity, double maxChargeCapacity, Date earliestStartDate, Date latestFinishDate) {
 		
 		_uniqueAgentName = uniqueAgentName;
@@ -50,17 +54,16 @@ public class Car implements Serializable{
 		_latestFinishDate = format.parse((String)args[4]);
 	}
 	
-	// Methods
+	// ******************************
+	// Public methods
+	// ******************************
 	public void refresh() {
-		CarSpecification carSpec = CarTypeTranslator.getCarFromType(_carType);
-		
+		// Update current capacity
 		if (_isConnected) {
 			PumpSpecification pumpSpec = PumpTypeTranslator.getPumpFromType(_currentPumpType);
 			double additionalCharge = 0.5 * pumpSpec.getOutputChargeRate();
 			_currentCapacity += additionalCharge;
 		}
-		// Update priority
-		double remainingCharge = _maxChargeCapacity - _currentCapacity;
 		
 		// Remove current connection details (to be updated by MSA)
 		_isConnected = false;
@@ -68,7 +71,9 @@ public class Car implements Serializable{
 		
 	}
 	
+	// ******************************
 	// Properties
+	// ******************************
 	public double getMaxChargeCapacity() {return _maxChargeCapacity;}
 	public Date getEarliestStartDate() {return _earliestStartDate;}
 	public Date getLatestFinishDate() {return _latestFinishDate;}
