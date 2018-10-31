@@ -3,13 +3,15 @@ package GA;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import Enums.PumpType;
 import Models.Car;
 import Models.Pump;
 
 public class GeneticAlgorithm {
-	public Map<Car, Pump> process(List<Car> cars, List<Pump> pumps, PumpType pumpType){
+	public Map<Car, Pump> process(List<Car> cars, List<Pump> pumps){
 		Map<Car, Pump> result = new HashMap<Car, Pump>();
 		int _generations = 0;
 		
@@ -18,7 +20,7 @@ public class GeneticAlgorithm {
 			return new HashMap<>();
 		}
 		// Create population
-		Population population = new Population(cars, pumps, true);
+		Population population = new Population(cars.stream().distinct().collect(Collectors.toList()), pumps, true);
 		
 		while ((population.getFittest().getFitness() < 2700)) {
 			if(_generations > 10) {

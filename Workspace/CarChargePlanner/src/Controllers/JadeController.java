@@ -15,18 +15,24 @@ import jade.core.ProfileImpl;
 import jade.wrapper.*;
 
 public class JadeController {
+	// ******************************
 	// Fields
+	// ******************************
 	private final ContainerController _mainContainer;
 	private final ContainerController _carContainer;
 	private int _numOfCarAgents = 0;
 	
+	// ******************************
 	// Constructors
+	// ******************************
 	public JadeController() {
 		_mainContainer = createContainer(null, true, true);
 		_carContainer = createContainer("car_container", false, false);
 	}
 	
-	// Methods
+	// ******************************
+	// Public Methods
+	// ******************************
 	public CarAgentInterface createCarAgent(CarType carType,double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) throws StaleProxyException {
 		AgentController agentController = _carContainer
 				.createNewAgent("car_agent" + String.valueOf(_numOfCarAgents++), CarAgent.class.getName(), new Object[] { carType, minChargeCapacity,
@@ -44,11 +50,9 @@ public class JadeController {
 		return agentController.getO2AInterface(MsaAgentInterface.class);		
 	}
 	
-	//todo - add a start simulation endpoint
-	
-	//todo - add a delete all car agent endpoint
-	
-	// Helpers
+	// ******************************
+	// Private Methods
+	// ******************************
 	private static ContainerController createContainer(String name, boolean showGui, boolean isMainContainer) {
 		Runtime rt = Runtime.instance();
 		Profile profile = new ProfileImpl(null, 8888, null);

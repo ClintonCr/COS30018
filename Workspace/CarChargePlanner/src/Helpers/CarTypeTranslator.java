@@ -4,6 +4,9 @@ import Enums.*;
 import java.util.*;
 
 public class CarTypeTranslator {
+	// ******************************
+	// Fields
+	// ******************************
 	private final static Map<CarType, CarSpecification> _carTypeSpecificationMap;
 	static {
 		Map<CarType, CarSpecification> tempMap = new HashMap<>();
@@ -14,6 +17,9 @@ public class CarTypeTranslator {
 		_carTypeSpecificationMap = Collections.unmodifiableMap(tempMap);
 	}
 	
+	// ******************************
+	// Public methods
+	// ******************************
 	/**
 	 * Returns static car details for a given car type.
 	 * 

@@ -20,6 +20,9 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
 public class AgentHelper {
+	// ******************************
+	// Public methods
+	// ******************************
 	public static List<Pump> generatePumps(int small, int medium, int large) {
 		List<Pump> result = new ArrayList<>();
 		
@@ -30,16 +33,6 @@ public class AgentHelper {
 		if (large >= 0)
 			result.addAll(batchGenerate(PumpType.Large, large));
 		return result;
-	}
-	
-	private static List<Pump> batchGenerate(PumpType pumpType, int batchSize){
-		List<Pump> batchResult = new ArrayList<>();
-		 for (int i = 0; i < batchSize; i++) {
-			 String uniqueId = pumpType.toString() + "_" + i; // safe as we only add on start-up
-			 batchResult.add(new Pump(uniqueId, pumpType));
-		 }
-		 
-		 return batchResult;
 	}
 	
 	public static Map<Car, Pump> generateSchedule(List<Car> cars, List<Pump> pumps){
@@ -62,7 +55,7 @@ public class AgentHelper {
 		// Trigger algorithm for large pump
 		removeImpossibleCarsForAlgo(largeCars, PumpType.Large); // filter out cars that we can accommodate
 		Map<Car, Pump> largeMapCSP = csp.process(largeCars, largePumps);
-		Map<Car, Pump> largeMapGA = algorithm.process(largeCars, largePumps, PumpType.Large);
+		Map<Car, Pump> largeMapGA = algorithm.process(largeCars, largePumps);
 		Map<Car, Pump> largeMap = getBest(largeMapCSP, largeMapGA);
 		bulkUpdateCars(largeMap, largeCars);
 		
@@ -70,7 +63,7 @@ public class AgentHelper {
 		mediumCars.addAll(largeCars);
 		removeImpossibleCarsForAlgo(mediumCars, PumpType.Medium);
 		Map<Car, Pump> mediumMapCSP = csp.process(mediumCars, mediumPumps);
-		Map<Car, Pump> mediumMapGA = algorithm.process(mediumCars, mediumPumps, PumpType.Medium);
+		Map<Car, Pump> mediumMapGA = algorithm.process(mediumCars, mediumPumps);
 		Map<Car, Pump> mediumMap = getBest(mediumMapCSP, mediumMapGA);
 		bulkUpdateCars(mediumMap, mediumCars);
 		
@@ -78,7 +71,7 @@ public class AgentHelper {
 		smallCars.addAll(mediumCars);
 		removeImpossibleCarsForAlgo(smallCars, PumpType.Small);
 		Map<Car, Pump> smallMapCSP = csp.process(smallCars, smallPumps);
-		Map<Car, Pump> smallMapGA = algorithm.process(smallCars, smallPumps, PumpType.Small);
+		Map<Car, Pump> smallMapGA = algorithm.process(smallCars, smallPumps);
 		Map<Car, Pump> smallMap = getBest(smallMapCSP, smallMapGA);
 		bulkUpdateCars(smallMap, smallCars);
 		
@@ -98,12 +91,13 @@ public class AgentHelper {
 	// This needs to tell cars when they are done. Either finished, or canceled.
 	public static List<ACLMessage> getMessages(Map<Car, Pump> map, List<Car> cars) {
 		List<ACLMessage> result = new ArrayList<>();
+		// Stores list of completed cars
 		List<Car> successfulCars = cars.stream()
-				.filter(car -> car.getCurrentCapacity() >= car.getMaxChargeCapacity())
+				.filter(car -> car.getCurrentCapacity() >= car.getMinChargeCapacity())
 				.collect(Collectors.toList());
 		String output = "~~Agent helper message generator~~";
 		
-		// Remove cars that have completed requirements
+		// Remove completed cars from car list and schedule
 		for(Car successfulCar : successfulCars) {
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			msg.addReceiver(new AID(successfulCar.getId(), AID.ISLOCALNAME));
@@ -115,20 +109,56 @@ public class AgentHelper {
 		}
 		
 		// Remove cars that we can't accommodate
+		List<Car> carsToRemove = new ArrayList<>();
 		for (Car car: cars) {
 			if (map.containsKey(car) == false) {
-				if (false) {//todo calculate if its possible to complete
-					//ACLMessage msg = new ACLMessage(ACLMessage.);
+				if (cantMeetRequirement(car, null)) {//todo calculate if its possible to complete
+					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					msg.addReceiver(new AID(car.getId(), AID.ISLOCALNAME));
+					msg.setContent("Requirements cannot be met for: " + car.getId());
+					result.add(msg);
 					output += System.lineSeparator() + "	Creating failed message for " + car.getId() + ". Requirement was "+ car.getMinChargeCapacity() + " and final was " + car.getCurrentCapacity() + ".";
+					map.remove(car);
+					carsToRemove.add(car);
 				}
 			}
 		}
 		
+		cars.removeAll(carsToRemove);		
 		if (output != "~~Agent helper message generator~~") {
 			System.out.println(output);			
 		}
 		
 		return result;
+	}
+	
+	// ******************************
+	// Private methods
+	// ******************************
+	/// This method is used to generate n amount of pumps for a given pump type
+	private static List<Pump> batchGenerate(PumpType pumpType, int batchSize){
+		List<Pump> batchResult = new ArrayList<>();
+		 for (int i = 0; i < batchSize; i++) {
+			 String uniqueId = pumpType.toString() + "_" + i; // safe as we only add on start-up
+			 batchResult.add(new Pump(uniqueId, pumpType));
+		 }
+		 
+		 return batchResult;
+	}
+	
+	/// Determines whether its possible for a car to meet its requirements with a given pump type
+	private static boolean cantMeetRequirement(Car car, PumpType pumpType) {
+		PumpType idealPump = pumpType == null ? PumpType.valueOf(car.getType().toString()) : pumpType;
+		PumpSpecification pumpSpec = PumpTypeTranslator.getPumpFromType(idealPump);
+		double minimumChargecapacity = car.getMinChargeCapacity();
+		double currentCapacity = car.getCurrentCapacity();
+		double remainingCapacity = minimumChargecapacity - currentCapacity;
+		double hoursToComplete = remainingCapacity / pumpSpec.getOutputChargeRate();
+		
+		Calendar projectedCompletion = Calendar.getInstance();
+		projectedCompletion.add(Calendar.MINUTE, (int) (hoursToComplete * 60));
+		
+		return (projectedCompletion.after(car.getLatestFinishDate()));
 	}
 	
 	private static List<Car> getCarsByType(List<Car> cars, CarType cartype){
@@ -142,28 +172,24 @@ public class AgentHelper {
 		return pumps.stream().filter(pump -> pump.getPumpType() == pumpType).collect(Collectors.toList());
 	}
 	
+	/// Removes cars from a given list that are not 
 	private static void removeImpossibleCarsForAlgo(List<Car> cars, PumpType pumpType) {
 		// Remove cars that projected finish date is greater then requirement
 		List<Car> carsToRemove = new ArrayList<>();
-		PumpSpecification pumpSpec = PumpTypeTranslator.getPumpFromType(pumpType);
-		double chargeRate = pumpSpec.getOutputChargeRate();
 		
 		for (Car car : cars) {
 			double minimumChargecapacity = car.getMinChargeCapacity();
 			double currentCapacity = car.getCurrentCapacity();
 			double remainingCapacity = minimumChargecapacity - currentCapacity;
-			double hoursToComplete = minimumChargecapacity / chargeRate;
 			
-			Calendar projectedCompletion = Calendar.getInstance();
-			projectedCompletion.add(Calendar.MINUTE, (int) (hoursToComplete * 60));
-			
-			if (projectedCompletion.after(car.getLatestFinishDate())) {
+			if (remainingCapacity <= 0 || cantMeetRequirement(car, pumpType)) {
 				carsToRemove.add(car);
 			}
 		}
 		cars.removeAll(carsToRemove);
 	}
 	
+	/// Updates the operating fields on each of the cars
 	private static void bulkUpdateCars(Map<Car, Pump> map, List<Car> cars) {
 		Iterator it = map.entrySet().iterator();
 		while (it.hasNext()) {
@@ -175,6 +201,7 @@ public class AgentHelper {
 		}
 	}
 	
+	// Returns the "best" schedule
 	private static Map<Car, Pump> getBest(Map<Car, Pump> mapLeft, Map<Car,Pump> mapRight){
 		int fitnessLeft = calculateFitness(mapLeft);
 		int fitnessRight = calculateFitness(mapRight);
@@ -203,10 +230,6 @@ public class AgentHelper {
 		return fitness;
 	}
 	
-	/*
-	 * Deadline Time Buffer is defined as the sum of:
-	 * Deadline - Projected finished time in minutes for each car in schedule.  
-	 */
 	private static int totalDeadlineTimeBuffer(Car car, Pump pump) {
 		double remainingCharge = 0;
 		double hoursTillMin = 0;

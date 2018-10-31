@@ -4,6 +4,9 @@ import Enums.*;
 import java.util.*;
 
 public class PumpTypeTranslator {
+	// ******************************
+	// Fields
+	// ******************************
 	private final static Map<PumpType, PumpSpecification> _pumpTypeSpecificationMap;
 	static {
 		Map<PumpType, PumpSpecification> tempMap = new HashMap<>();
@@ -14,6 +17,9 @@ public class PumpTypeTranslator {
 		_pumpTypeSpecificationMap = Collections.unmodifiableMap(tempMap);
 	}
 	
+	// ******************************
+	// Private methods
+	// ******************************
 	/**
 	 * Returns static pump details for a given pump type.
 	 * 

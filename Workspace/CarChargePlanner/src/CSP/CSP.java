@@ -1,6 +1,7 @@
 package CSP;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class CSP {
 			return new HashMap<>();
 		}
 		
-		_cars.addAll(cars);
+		_cars = Collections.unmodifiableList(new ArrayList<>(cars.stream().distinct().collect(Collectors.toList())));
 		_pumps.addAll(pumps);
 		
 		backtrack(_cars.get(0), _pumps.get(0));
@@ -36,13 +37,13 @@ public class CSP {
 	
 	public void backtrack(Car currentCar, Pump currentPump){
 		
+		Car nextCar = getNextCar(currentCar);
+		Pump nextPump = getNextPump(currentPump);
+		
 		// Exit clause
 		if (currentCar == null || currentPump == null) {
 			return; 
 		}
-		
-		Car nextCar = getNextCar(currentCar);
-		Pump nextPump = getNextPump(currentPump);
 		
 		_map.put(currentPump, currentCar);
 		
