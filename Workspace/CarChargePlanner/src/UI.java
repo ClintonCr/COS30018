@@ -198,7 +198,7 @@ public class UI {
 			public void focusGained(FocusEvent fe) {
 				
 				if (txtStartTime.getText().equals("Enter Start Time")) {
-					txtStartTime.setText("");
+					txtStartTime.setText("28/10/2018 11:00");
 				}
 			}
 		});
@@ -225,7 +225,7 @@ public class UI {
 			public void focusGained(FocusEvent fe) {
 				
 				if (txtDeadlineTime.getText().equals("Enter Deadline")) {
-					txtDeadlineTime.setText("");
+					txtDeadlineTime.setText("28/10/2018 16:00");
 				}
 			}
 		});
@@ -319,7 +319,7 @@ public class UI {
 			public void actionPerformed(ActionEvent e) {
 				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				Calendar deadline = Calendar.getInstance();
-				deadline.add(Calendar.HOUR, 12);
+				deadline.add(Calendar.HOUR, 24);
 				
 				// Add small cars
 				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
@@ -338,14 +338,14 @@ public class UI {
 			public void actionPerformed(ActionEvent e) {
 				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				Calendar deadline = Calendar.getInstance();
-				deadline.add(Calendar.HOUR, 12);
+				deadline.add(Calendar.HOUR, 24);
 				
 				// Add small cars
 				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
 				// Add medium cars
 				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
 				// Add large cars
-				createBatchCars(20, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				createBatchCars(15, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
 			}
 		});
 		JButton btnConfig3 = new JButton("Configuration 3");
@@ -357,7 +357,7 @@ public class UI {
 			public void actionPerformed(ActionEvent e) {
 				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				Calendar deadline = Calendar.getInstance();
-				deadline.add(Calendar.HOUR, 12);
+				deadline.add(Calendar.HOUR, 24);
 				
 				// Add small cars
 				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
@@ -379,7 +379,7 @@ public class UI {
 				refreshCarSchedule(tempCarList, tempSchedule);
 			}
 		};
-		_aTimer.scheduleAtFixedRate(aTask, 0, 5000);
+		_aTimer.scheduleAtFixedRate(aTask, 0, 30000);
 	}
 	
 	private void createBatchCars(int amount, CarType carType, double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
@@ -454,6 +454,10 @@ public class UI {
 					.findFirst()
 					.map(m->m.getKey())
 					.orElse(null);
+			
+			if (connectedCar ==null) {
+				return;
+			}
 			
 			rowData[0] = pump.getId();
 			rowData[1] = connectedCar.getId();
