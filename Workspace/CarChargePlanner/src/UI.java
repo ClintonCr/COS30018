@@ -55,6 +55,7 @@ public class UI {
 	private Timer _aTimer = new Timer();
 	final private JTable _carScheduleTable;
 	private DefaultTableModel _carScheduleModel = new DefaultTableModel();
+	private int _timerMilliseconds; // 30 mins in simulation will be this many milliseconds in real life
 	
 	// ******************************
 	// Public methods
@@ -98,6 +99,7 @@ public class UI {
 			int smallPumps = Integer.parseInt(_properties.getProperty("SMALL_PUMP"));
 			int mediumPumps = Integer.parseInt(_properties.getProperty("MEDIUM_PUMP"));
 			int largePumps = Integer.parseInt(_properties.getProperty("LARGE_PUMP"));
+			_timerMilliseconds = Integer.parseInt(_properties.getProperty("TICKER_TIMER"));
 			createMsa(smallPumps, mediumPumps, largePumps);
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -389,7 +391,7 @@ public class UI {
 				refreshCarSchedule(tempCarList, tempSchedule);
 			}
 		};
-		_aTimer.scheduleAtFixedRate(aTask, 0, 5000);
+		_aTimer.scheduleAtFixedRate(aTask, 0, _timerMilliseconds);
 	}
 	
 	// ******************************
@@ -409,7 +411,6 @@ public class UI {
 			_carAgents.add(_jadeController.createCarAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline));
 		}
 		catch (Exception e) {
-			// TODO - log this correctly?
 			e.printStackTrace();
 		}
 	}

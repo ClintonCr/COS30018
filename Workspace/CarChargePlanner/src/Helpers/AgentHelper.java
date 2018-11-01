@@ -77,9 +77,9 @@ public class AgentHelper {
 		
 		// Update map
 		tempMap.clear();
-		tempMap.putAll(largeMapCSP);
-		tempMap.putAll(mediumMapCSP);
-		tempMap.putAll(smallMapCSP);
+		tempMap.putAll(largeMap);
+		tempMap.putAll(mediumMap);
+		tempMap.putAll(smallMap);
 		
 		// Update cars
 		cars.clear();
