@@ -332,13 +332,14 @@ public class UI {
 				DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
 				Calendar deadline = Calendar.getInstance();
 				deadline.add(Calendar.HOUR, 24);
+				//(int amount, CarType carType, double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline)
 				
 				// Add small cars
-				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				createBatchCars(20, CarType.Small, 30, 30, df.format(new Date()), df.format(deadline.getTime()));
 				// Add medium cars
-				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				createBatchCars(20, CarType.Medium, 50, 50, df.format(new Date()), df.format(deadline.getTime()));
 				// Add large cars
-				createBatchCars(20, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				createBatchCars(20, CarType.Large, 70, 70, df.format(new Date()), df.format(deadline.getTime()));
 			}
 		});
 		JButton btnConfig2 = new JButton("Configuration 2");
@@ -352,12 +353,8 @@ public class UI {
 				Calendar deadline = Calendar.getInstance();
 				deadline.add(Calendar.HOUR, 24);
 				
-				// Add small cars
-				createBatchCars(20, CarType.Small, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
 				// Add medium cars
-				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
-				// Add large cars
-				createBatchCars(15, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				createBatchCars(100, CarType.Medium, 50, 50, df.format(new Date()), df.format(deadline.getTime()));
 			}
 		});
 		JButton btnConfig3 = new JButton("Configuration 3");
@@ -371,12 +368,8 @@ public class UI {
 				Calendar deadline = Calendar.getInstance();
 				deadline.add(Calendar.HOUR, 48);
 				
-				// Add small cars
-				createBatchCars(20, CarType.Small, 1, 12, df.format(new Date()), df.format(deadline.getTime()));
-				// Add medium cars
-				createBatchCars(20, CarType.Medium, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
 				// Add large cars
-				createBatchCars(20, CarType.Large, 12, 12, df.format(new Date()), df.format(deadline.getTime()));
+				createBatchCars(100, CarType.Large, 70, 70, df.format(new Date()), df.format(deadline.getTime()));
 			}
 		});
 		
@@ -400,8 +393,6 @@ public class UI {
 	/// Jade Interaction Helpers
 	private void createBatchCars(int amount, CarType carType, double minChargeCapacity, double maxChargeCapacity, String earliestStartTime, String deadline) {
 		for (int i = 0; i < amount; i++) {
-			minChargeCapacity += 2;
-			maxChargeCapacity += 2;
 			createAgent(carType, minChargeCapacity, maxChargeCapacity, earliestStartTime, deadline);
 		}
 	}

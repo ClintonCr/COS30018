@@ -55,24 +55,21 @@ public class AgentHelper {
 		// Trigger algorithm for large pump
 		removeImpossibleCarsForAlgo(largeCars, PumpType.Large); // filter out cars that we can accommodate
 		Map<Car, Pump> largeMapCSP = csp.process(largeCars, largePumps);
-		Map<Car, Pump> largeMapGA = algorithm.process(largeCars, largePumps);
-		Map<Car, Pump> largeMap = getBest(largeMapCSP, largeMapGA);
+		Map<Car, Pump> largeMap = algorithm.process(largeCars, largePumps);
 		bulkUpdateCars(largeMap, largeCars);
 		
 		// Trigger algorithm for medium pump
 		mediumCars.addAll(largeCars);
 		removeImpossibleCarsForAlgo(mediumCars, PumpType.Medium);
 		Map<Car, Pump> mediumMapCSP = csp.process(mediumCars, mediumPumps);
-		Map<Car, Pump> mediumMapGA = algorithm.process(mediumCars, mediumPumps);
-		Map<Car, Pump> mediumMap = getBest(mediumMapCSP, mediumMapGA);
+		Map<Car, Pump> mediumMap = algorithm.process(mediumCars, mediumPumps);
 		bulkUpdateCars(mediumMap, mediumCars);
 		
 		// Trigger algorithm for small pump
 		smallCars.addAll(mediumCars);
 		removeImpossibleCarsForAlgo(smallCars, PumpType.Small);
 		Map<Car, Pump> smallMapCSP = csp.process(smallCars, smallPumps);
-		Map<Car, Pump> smallMapGA = algorithm.process(smallCars, smallPumps);
-		Map<Car, Pump> smallMap = getBest(smallMapCSP, smallMapGA);
+		Map<Car, Pump> smallMap = algorithm.process(smallCars, smallPumps);
 		bulkUpdateCars(smallMap, smallCars);
 		
 		// Update map
@@ -199,18 +196,6 @@ public class AgentHelper {
 			currentCar.setPump((Pump)kvp.getValue());
 			cars.remove(currentCar);
 		}
-	}
-	
-	// Returns the "best" schedule
-	private static Map<Car, Pump> getBest(Map<Car, Pump> mapLeft, Map<Car,Pump> mapRight){
-		int fitnessLeft = calculateFitness(mapLeft);
-		int fitnessRight = calculateFitness(mapRight);
-		
-		if (fitnessLeft > fitnessRight) {
-			return mapLeft;
-		}
-		
-		return mapRight;
 	}
 	
 	private static int calculateFitness(Map<Car,Pump> map) {
