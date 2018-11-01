@@ -10,9 +10,9 @@ public class PumpTypeTranslator {
 	private final static Map<PumpType, PumpSpecification> _pumpTypeSpecificationMap;
 	static {
 		Map<PumpType, PumpSpecification> tempMap = new HashMap<>();
-		tempMap.put(PumpType.Small, new PumpSpecification(1.0));
-		tempMap.put(PumpType.Medium, new PumpSpecification(2.0));
-		tempMap.put(PumpType.Large, new PumpSpecification(3.0));
+		tempMap.put(PumpType.Small, new PumpSpecification(10));
+		tempMap.put(PumpType.Medium, new PumpSpecification(50));
+		tempMap.put(PumpType.Large, new PumpSpecification(120));
 		
 		_pumpTypeSpecificationMap = Collections.unmodifiableMap(tempMap);
 	}

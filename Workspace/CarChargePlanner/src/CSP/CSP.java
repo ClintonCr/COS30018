@@ -29,10 +29,10 @@ public class CSP {
 		}
 		
 		_cars = Collections.unmodifiableList(new ArrayList<>(cars.stream().distinct().collect(Collectors.toList())));
-		_pumps.addAll(pumps);
+		_pumps = Collections.unmodifiableList(new ArrayList<>(pumps.stream().distinct().collect(Collectors.toList())));
 		
 		backtrack(_cars.get(0), _pumps.get(0));
-		return invertMap(_map);
+		return invertMap(Collections.unmodifiableMap(_map));
 	}
 	
 	public void backtrack(Car currentCar, Pump currentPump){
@@ -45,14 +45,16 @@ public class CSP {
 			return; 
 		}
 		
-		_map.put(currentPump, currentCar);
+		if (canAddToMap(currentPump)) {
+			_map.put(currentPump, currentCar);
+		}
 		
 		// If valid then iterate pump
 		if (isSafe()){
 			backtrack(nextCar, nextPump);
 		}
 		else{ // If in-valid then iterate car
-			_map.remove(currentPump);
+			//_map.remove(currentPump);
 			backtrack(nextCar, currentPump);
 		}
 	}
@@ -61,7 +63,7 @@ public class CSP {
 		List<Car> cars = new ArrayList<>(_map.values().stream().collect(Collectors.toList()));
 		
 		Car tempCar = cars.get(cars.size()-1);
-		cars.remove(cars.size()-1); //TODO: Validate this
+		cars.remove(cars.size()-1);
 		
 		return cars.contains(tempCar)==false;
 	}
@@ -99,5 +101,9 @@ public class CSP {
 		}
 		
 		return tempMap;
+	}
+	
+	private boolean canAddToMap(Pump pump) {
+		return _pumps.contains(pump);
 	}
 }

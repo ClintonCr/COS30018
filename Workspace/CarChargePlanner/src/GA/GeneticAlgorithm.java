@@ -22,10 +22,7 @@ public class GeneticAlgorithm {
 		// Create population
 		Population population = new Population(cars.stream().distinct().collect(Collectors.toList()), pumps, true);
 		
-		while ((population.getFittest().getFitness() < 2700)) {
-			if(_generations > 10) {
-				break;
-			}
+		while (_generations < 11) {
 			population.evolve(population);
 			_generations++;
 		}
